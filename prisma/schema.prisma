@@ -43,6 +43,7 @@ model Expense {
   description     String?
   source          String    // "text", "image", "ocr", "manual"
   imageUrl        String?   // Cloudinary URL
-  rawText         String?   // For debugging OCR results
   createdAt       DateTime  @default(now())
+  rawText        String?
+  structuredData Json?
 }

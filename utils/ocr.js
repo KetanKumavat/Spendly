@@ -1,7 +1,7 @@
 const vision = require("@google-cloud/vision");
 const path = require("path");
 
-console.log(__dirname);
+// console.log(__dirname);
 
 const client = new vision.ImageAnnotatorClient({
     keyFilename: path.join(__dirname, "../config/google-credentials.json"),

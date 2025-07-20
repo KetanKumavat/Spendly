@@ -3,5 +3,5 @@ node_modules
 .env
 
 /generated/prisma
-/config/google-credentials.json
-assets
+/config
+/assets
