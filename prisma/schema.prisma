@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  name            String 
+  phoneNumber     String    @unique
+  createdAt       DateTime  @default(now())
+  expenses        Expense[]
+  sessions        Session[]
+}
+
+model Session {
+  id              String     @id @default(uuid())
+  user            User       @relation(fields: [userId], references: [id])
+  userId          String
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  lastMessage     String?
+  currentState    String?    // e.g., 'awaiting_amount', 'awaiting_category'
+}
+
+model Expense {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [userId], references: [id])
+  userId          String
+  date            DateTime  @default(now())
+  amount          Float
+  category        String
+  description     String?
+  source          String    // "text", "image", "ocr", "manual"
+  imageUrl        String?   // Cloudinary URL
+  rawText         String?   // For debugging OCR results
+  createdAt       DateTime  @default(now())
+}
