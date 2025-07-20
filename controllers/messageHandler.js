@@ -2,6 +2,8 @@ const axios = require("axios");
 const { getMediaUrl, downloadMediaBuffer } = require("../utils/whatsapp");
 const cloudinary = require("../utils/cloudinary");
 const { PrismaClient } = require("@prisma/client");
+const { extractTextFromImage } = require("../utils/ocr");
+
 const prisma = new PrismaClient();
 
 module.exports = async (req, res) => {
@@ -67,6 +69,17 @@ module.exports = async (req, res) => {
                     if (error) {
                         console.error("❌ Cloudinary error", error);
                         return;
+                    }
+
+                    // OCR processing
+                    try {
+                        console.log("Calling Google Vision OCR...");
+                        const ocrText = await extractTextFromImage(
+                            result.secure_url
+                        );
+                        console.log("✅ OCR Text:", ocrText);
+                    } catch (ocrErr) {
+                        console.error("❌ OCR failed:", ocrErr);
                     }
 
                     await prisma.expense.create({
