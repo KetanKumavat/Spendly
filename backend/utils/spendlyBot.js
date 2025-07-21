@@ -24,7 +24,7 @@ Ready to track more expenses? Send me:
     }
 
     static getHelpMessage() {
-        return `🔧 *Spendly Commands:*
+        return `💸 *Spendly Commands 💸:*
 
 *💰 Expense Tracking:*
 • Send text: "50rs coffee" or "paid 200 to uber"
@@ -124,8 +124,9 @@ Keep tracking! Send another expense or type 'help' for more options. 📊`;
             "budget status",
             "budgets",
             "categories",
+            "login",
+            "dashboard",
         ];
-
         if (directCommands.some((cmd) => lowerText === cmd)) {
             return true;
         }
@@ -260,6 +261,10 @@ Keep tracking! Send another expense or type 'help' for more options. 📊`;
                 });
                 return this.getWelcomeMessage(!user);
 
+            case "login":
+            case "dashboard":
+                return await this.generateDashboardLink(phoneNumber);
+
             default:
                 if (this.isNaturalQuery(command)) {
                     if (this.isBudgetCommand(command)) {
@@ -277,6 +282,37 @@ Keep tracking! Send another expense or type 'help' for more options. 📊`;
                 }
 
                 return this.getHelpMessage();
+        }
+    }
+
+    static async generateDashboardLink(phoneNumber) {
+        try {
+            const axios = require("axios");
+            const API_URL = process.env.API_URL || "http://localhost:3000";
+
+            const response = await axios.post(
+                `${API_URL}/auth/generate-magic-link`,
+                {
+                    phone: phoneNumber,
+                }
+            );
+
+            if (response.data && response.data.link) {
+                return `🔗 *Your Dashboard Link*
+
+${response.data.link}
+
+✅ This link is valid for 15 minutes
+🔒 Secure access to your expense data
+📊 View analytics, budgets, and export data
+
+*Tip:* Bookmark this page after logging in!`;
+            } else {
+                return "❌ Failed to generate dashboard link. Please try again.";
+            }
+        } catch (error) {
+            console.error("Dashboard link generation failed:", error);
+            return "❌ Failed to generate dashboard link. Please try again later.";
         }
     }
 
