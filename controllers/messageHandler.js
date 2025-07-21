@@ -2,288 +2,17 @@ const axios = require("axios");
 const cloudinary = require("../utils/cloudinary");
 const { PrismaClient } = require("@prisma/client");
 const { extractTextFromImage } = require("../utils/ocr");
-const { extractExpenseData } = require("../utils/gemini");
+const { GeminiService } = require("../utils/gemini");
+
 const sendWhatsApp = require("../utils/twilioWhatsapp");
 const SpendlyBot = require("../utils/spendlyBot");
+const SmartCategorization = require("../utils/smartCategorization");
+const BudgetManager = require("../utils/budgetManager");
 
 const prisma = new PrismaClient();
-
-//using meta api
-// module.exports = async (req, res) => {
-//     const entry = req.body.entry?.[0];
-//     const changes = entry?.changes?.[0];
-//     const message = changes?.value?.messages?.[0];
-
-//     if (!message) return res.sendStatus(200);
-
-//     const from = message.from;
-//     const type = message.type;
-
-//     try {
-//         if (type === "text") {
-//             const text = message.text.body;
-//             console.log(`Text: ${text}`);
-
-//             let user = await prisma.user.findUnique({
-//                 where: { id: from },
-//             });
-
-//             if (!user) {
-//                 user = await prisma.user.create({
-//                     data: {
-//                         id: from,
-//                         phoneNumber: from,
-//                     },
-//                 });
-//             }
-
-//             let expenseData = {};
-//             try {
-//                 console.log("Sending plain text to Gemini for parsing...");
-//                 expenseData = await extractExpenseData(text);
-//                 console.log("Parsed Text Expense:", expenseData);
-
-//                 const saved = await prisma.expense.create({
-//                     data: {
-//                         userId: from,
-//                         imageUrl: null,
-//                         source: "whatsapp",
-//                         amount: parseFloat(expenseData.total) || 0,
-//                         category: "Auto Extracted",
-//                         description: `Vendor: ${
-//                             expenseData.vendor || "N/A"
-//                         } | Date: ${expenseData.date || "N/A"}`,
-//                         rawText: text,
-//                         structuredData: expenseData,
-//                     },
-//                 });
-
-//                 const feedbackMsg = `Saved ₹${expenseData.total || 0} for "${
-//                     expenseData.vendor || "item"
-//                 }" on ${expenseData.date || "today"}.`;
-
-//                 // await axios.post(
-//                 //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
-//                 //     {
-//                 //         messaging_product: "whatsapp",
-//                 //         to: from,
-//                 //         text: { body: feedbackMsg },
-//                 //     },
-//                 //     {
-//                 //         headers: {
-//                 //             Authorization: `Bearer ${process.env.META_TOKEN}`,
-//                 //             "Content-Type": "application/json",
-//                 //         },
-//                 //     }
-//                 // );
-
-//                 await sendWhatsApp(from, feedbackMsg);
-//             } catch (err) {
-//                 console.error("Text parsing failed:", err);
-
-//                 // await axios.post(
-//                 //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
-//                 //     {
-//                 //         messaging_product: "whatsapp",
-//                 //         to: from,
-//                 //         text: {
-//                 //             body: `Sorry, I couldn't understand that. Try sending like: "30rs lunch at canteen" or send a bill image.`,
-//                 //         },
-//                 //     },
-//                 //     {
-//                 //         headers: {
-//                 //             Authorization: `Bearer ${process.env.META_TOKEN}`,
-//                 //             "Content-Type": "application/json",
-//                 //         },
-//                 //     }
-//                 // );
-
-//                 await sendWhatsApp(
-//                     from,
-//                     'Sorry, I couldn\'t understand that. Try sending like: "30rs lunch at canteen" or send a bill image.'
-//                 );
-//             }
-//         }
-
-//         if (type === "image") {
-//             const imageId = message.image.id;
-//             console.log(`Image ID: ${imageId}`);
-
-//             const token = process.env.META_TOKEN;
-
-//             const mediaUrl = await getMediaUrl(imageId, token);
-//             const buffer = await downloadMediaBuffer(mediaUrl, token);
-
-//             let user = await prisma.user.findUnique({ where: { id: from } });
-//             if (!user) {
-//                 user = await prisma.user.create({
-//                     data: { id: from, phoneNumber: from, name: `User ${from}` },
-//                 });
-//             }
-
-//             const stream = cloudinary.uploader.upload_stream(
-//                 { folder: "whatsapp-expenses" },
-//                 async (error, result) => {
-//                     if (error) {
-//                         console.error("Cloudinary error", error);
-
-//                         // await axios.post(
-//                         //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
-//                         //     {
-//                         //         messaging_product: "whatsapp",
-//                         //         to: from,
-//                         //         text: {
-//                         //             body: `Sorry, there was an error uploading your image. Please try again later.`,
-//                         //         },
-//                         //     },
-//                         //     {
-//                         //         headers: {
-//                         //             Authorization: `Bearer ${process.env.META_TOKEN}`,
-//                         //             "Content-Type": "application/json",
-//                         //         },
-//                         //     }
-//                         // );
-
-//                         await sendWhatsApp(
-//                             from,
-//                             "Sorry, there was an error uploading your image. Please try again later."
-//                         );
-
-//                         return;
-//                     }
-
-//                     let ocrText = "";
-//                     let expenseData = {};
-
-//                     try {
-//                         console.log("Extracting text using OCR...");
-//                         ocrText = await extractTextFromImage(result.secure_url);
-//                         console.log("OCR Text:", ocrText);
-
-//                         console.log(
-//                             "🔎 Sending text to Gemini for structuring..."
-//                         );
-//                         expenseData = await extractExpenseData(ocrText);
-//                         console.log("Structured Data:", expenseData);
-//                     } catch (ocrOrGeminiError) {
-//                         console.error(
-//                             "OCR or Gemini failed:",
-//                             ocrOrGeminiError
-//                         );
-
-//                         await prisma.expense.create({
-//                             data: {
-//                                 userId: from,
-//                                 imageUrl: result.secure_url,
-//                                 source: "whatsapp",
-//                                 amount: 0,
-//                                 category: "Uncategorized",
-//                                 description: "Auto extraction failed",
-//                                 rawText: ocrText,
-//                                 structuredData: {},
-//                             },
-//                         });
-
-//                         // await axios.post(
-//                         //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
-//                         //     {
-//                         //         messaging_product: "whatsapp",
-//                         //         to: from,
-//                         //         text: {
-//                         //             body: `Expense details couldn't be extracted, but the bill has been saved.\nWe'll improve this soon!`,
-//                         //         },
-//                         //     },
-//                         //     {
-//                         //         headers: {
-//                         //             Authorization: `Bearer ${process.env.META_TOKEN}`,
-//                         //             "Content-Type": "application/json",
-//                         //         },
-//                         //     }
-//                         // );
-
-//                         await sendWhatsApp(
-//                             from,
-//                             "Expense details couldn't be extracted, but the bill has been saved.\nWe'll improve this soon!"
-//                         );
-
-//                         return;
-//                     }
-
-//                     const amount = parseFloat(expenseData.total) || 0;
-//                     const vendor = expenseData.vendor || "Unknown Vendor";
-//                     const dateStr = expenseData.date || "Unknown Date";
-
-//                     await prisma.expense.create({
-//                         data: {
-//                             userId: from,
-//                             imageUrl: result.secure_url,
-//                             source: "whatsapp",
-//                             amount,
-//                             category: "Auto Extracted",
-//                             description: `Vendor: ${vendor} | Date: ${dateStr}`,
-//                             rawText: ocrText,
-//                             structuredData: expenseData,
-//                         },
-//                     });
-
-//                     console.log("Expense saved to DB");
-
-//                     const feedbackMsg = `Expense saved!\nVendor: ${vendor}\nAmount: ₹${amount}\nDate: ${dateStr}`;
-
-//                     // await axios.post(
-//                     //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
-//                     //     {
-//                     //         messaging_product: "whatsapp",
-//                     //         to: from,
-//                     //         text: { body: feedbackMsg },
-//                     //     },
-//                     //     {
-//                     //         headers: {
-//                     //             Authorization: `Bearer ${process.env.META_TOKEN}`,
-//                     //             "Content-Type": "application/json",
-//                     //         },
-//                     //     }
-//                     // );
-
-//                     await sendWhatsApp(userNumber, feedbackMsg);
-//                 }
-//             );
-
-//             stream.end(buffer);
-//         }
-
-//         res.sendStatus(200);
-//     } catch (err) {
-//         console.error("Unhandled error in handler:", err);
-
-//         // await axios.post(
-//         //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
-//         //     {
-//         //         messaging_product: "whatsapp",
-//         //         to: from,
-//         //         text: {
-//         //             body: ``,
-//         //         },
-//         //     },
-//         //     {
-//         //         headers: {
-//         //             Authorization: `Bearer ${process.env.META_TOKEN}`,
-//         //             "Content-Type": "application/json",
-//         //         },
-//         //     }
-//         // );
-
-//         await sendWhatsApp(
-//             from,
-//             "Unexpected error occurred. Please retry or contact support."
-//         );
-
-//         res.sendStatus(500);
-//     }
-// };
+const geminiService = new GeminiService();
 
 //using twilio api
-
 const MessagingResponse = require("twilio").twiml.MessagingResponse;
 
 module.exports = async (req, res) => {
@@ -407,15 +136,23 @@ module.exports = async (req, res) => {
                 //     );
                 // }
 
-                expenseData = await extractExpenseData(body);
-
-                await prisma.expense.create({
+                expenseData = await geminiService.extractExpenseData(body);
+                // console.log("Parsed:", expenseData);
+                const categorizationResult =
+                    await SmartCategorization.categorize(
+                        body,
+                        expenseData.vendor || "",
+                        expenseData.total || 0
+                    );
+                // Smart categorization
+                const smartCategory = categorizationResult.category;
+                const newExpense = await prisma.expense.create({
                     data: {
                         userId: phoneNumber,
                         imageUrl: null,
                         source: "whatsapp",
                         amount: parseFloat(expenseData.total) || 0,
-                        category: "Auto Extracted",
+                        category: smartCategory,
                         description: `Vendor: ${
                             expenseData.vendor || "N/A"
                         } | Date: ${expenseData.date || "N/A"}`,
@@ -424,13 +161,25 @@ module.exports = async (req, res) => {
                     },
                 });
 
+                // Check for budget alerts
+                const budgetAlerts = await BudgetManager.checkBudgetAlerts(
+                    prisma,
+                    phoneNumber,
+                    newExpense
+                );
+
                 const successMsg = SpendlyBot.getSuccessMessage(
-                    expenseData,
+                    { ...expenseData, category: smartCategory },
                     false
                 );
                 await sendWhatsApp(phoneNumber, successMsg);
+
+                // Send budget alerts if any
+                for (const alert of budgetAlerts) {
+                    await sendWhatsApp(phoneNumber, alert);
+                }
             } catch (e) {
-                // console.error("Gemini parsing failed:", e);
+                // console.error("Expense processing failed:", e);
                 const errorMsg = SpendlyBot.getErrorMessage("parsing");
                 await sendWhatsApp(phoneNumber, errorMsg);
             }
@@ -489,7 +238,8 @@ module.exports = async (req, res) => {
                             console.log(
                                 "Sending text to Gemini for structuring..."
                             );
-                            expenseData = await extractExpenseData(ocrText);
+                            expenseData =
+                                await geminiService.extractExpenseData(ocrText);
                             // console.log("Structured Data:", expenseData);
                         } catch (ocrOrGeminiError) {
                             console.error(
@@ -523,13 +273,20 @@ I'll keep improving! 🚀`;
                             return;
                         }
 
+                        const categorizationResult =
+                            await SmartCategorization.categorize(
+                                ocrText,
+                                expenseData.vendor || "",
+                                expenseData.total || 0
+                            );
+                        const smartCategory = categorizationResult.category;
                         const saved = await prisma.expense.create({
                             data: {
                                 userId: phoneNumber,
                                 imageUrl: result.secure_url,
                                 source: "whatsapp",
                                 amount: parseFloat(expenseData.total) || 0,
-                                category: "Auto Extracted",
+                                category: smartCategory,
                                 description: `Vendor: ${
                                     expenseData.vendor || "N/A"
                                 } | Date: ${expenseData.date || "N/A"}`,
@@ -538,11 +295,22 @@ I'll keep improving! 🚀`;
                             },
                         });
 
+                        const budgetAlerts =
+                            await BudgetManager.checkBudgetAlerts(
+                                prisma,
+                                phoneNumber,
+                                saved
+                            );
+
                         const successMsg = SpendlyBot.getSuccessMessage(
-                            expenseData,
+                            { ...expenseData, category: smartCategory },
                             true
                         );
                         await sendWhatsApp(phoneNumber, successMsg);
+
+                        for (const alert of budgetAlerts) {
+                            await sendWhatsApp(phoneNumber, alert);
+                        }
                     }
                 );
 
@@ -566,7 +334,7 @@ I'll keep improving! 🚀`;
         res.type("text/xml");
         res.send(twiml.toString());
     } catch (err) {
-        console.error("❌ Server error:", err);
+        console.error("Server error:", err);
         const twiml = new MessagingResponse();
         res.type("text/xml");
         res.status(500).send(twiml.toString());

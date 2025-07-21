@@ -20,7 +20,7 @@ router.get("/", (req, res) => {
 router.post("/", messageHandler);
 
 router.post("/status", (req, res) => {
-    // console.log("📊 Message status update:", {
+    // console.log("Message status update:", {
     //     messageSid: req.body.MessageSid || req.body.SmsSid,
     //     status: req.body.MessageStatus || req.body.SmsStatus,
     //     to: req.body.To,

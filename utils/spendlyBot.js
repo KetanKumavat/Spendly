@@ -26,20 +26,32 @@ Ready to track more expenses? Send me:
     static getHelpMessage() {
         return `🔧 *Spendly Commands:*
 
-*Expense Tracking:*
+*💰 Expense Tracking:*
 • Send text: "50rs coffee" or "paid 200 to uber"
 • Send bill photo for auto-extraction
 
-*Quick Commands:*
+*📊 Analytics & Reports:*
 • \`summary\` - View your expense summary
 • \`today\` - Today's expenses
 • \`week\` - This week's expenses
 • \`categories\` - Expense breakdown by category
+• "How much did I spend on food this month?"
+• "Show my total expenses for July"
+• "Top 3 categories last 7 days"
+
+*💸 Budget Management:*
+• "Set budget for food as 5000 this month"
+• "Set travel budget 3000 monthly"
+• \`budgets\` - List all your budgets
+• \`budget status\` - Check budget usage
+
+*🔧 Other Commands:*
 • \`help\` - Show this menu
 
 *Pro Tips:*
-💡 Include vendor name for better tracking
-💡 I understand various formats like "rs", "rupees", "₹"
+💡 I auto-categorize expenses (Food, Travel, Shopping, etc.)
+💡 Set budgets and get alerts when you're close to limits
+💡 Ask me natural questions about your spending!
 💡 Send clear photos for accurate bill scanning
 
 What would you like to track today? 📊`;
@@ -96,22 +108,123 @@ Keep tracking! Send another expense or type 'help' for more options. 📊`;
     }
 
     static isCommand(text) {
-        const commands = [
+        const lowerText = text.toLowerCase().trim();
+
+        // Direct command matches (including multi-word commands)
+        const directCommands = [
+            "hi",
+            "hello",
+            "hey",
+            "start",
             "help",
             "summary",
             "today",
             "week",
+            "budget",
+            "budget status",
+            "budgets",
             "categories",
-            "start",
-            "hi",
-            "hello",
-            "hey",
         ];
-        return commands.includes(text.toLowerCase().trim());
+
+        if (directCommands.some((cmd) => lowerText === cmd)) {
+            return true;
+        }
+
+        // Check for natural language queries
+        const queryPatterns = [
+            /how much.*spend.*on/i,
+            /show.*total.*expenses/i,
+            /show.*expenses?/i,
+            /show.*my.*expenses/i,
+            /expenses.*for.*month/i,
+            /expenses.*this.*month/i,
+            /top.*categories/i,
+            /set.*budget/i,
+            /budget.*for/i,
+            /spend.*this/i,
+            /spend.*last/i,
+            /total.*spent/i,
+            /expenses? for/i,
+            /spending.*on/i,
+            /breakdown/i,
+            /monthly.*expenses/i,
+            /weekly.*expenses/i,
+            /daily.*expenses/i,
+        ];
+
+        return queryPatterns.some((pattern) => pattern.test(text));
     }
+
+    // static async handleCommand(command, phoneNumber, prisma) {
+    //     const cmd = command.toLowerCase().trim();
+
+    //     // Import the new services
+    //     const ExpenseAnalytics = require("./expenseAnalytics");
+    //     const BudgetManager = require("./budgetManager");
+
+    //     switch (cmd) {
+    //         case "help":
+    //             return this.getHelpMessage();
+
+    //         case "summary":
+    //             return await this.getSummaryMessage(phoneNumber, prisma);
+
+    //         case "today":
+    //             return await this.getTodayExpenses(phoneNumber, prisma);
+
+    //         case "week":
+    //             return await this.getWeekExpenses(phoneNumber, prisma);
+
+    //         case "categories":
+    //             return await this.getCategoryBreakdown(phoneNumber, prisma);
+
+    //         case "budgets":
+    //             return await BudgetManager.listBudgets(prisma, phoneNumber);
+
+    //         case "budget status":
+    //             return await BudgetManager.checkBudgetStatus(
+    //                 prisma,
+    //                 phoneNumber
+    //             );
+
+    //         case "start":
+    //         case "hi":
+    //         case "hello":
+    //         case "hey":
+    //             // Check if user exists to determine welcome message
+    //             const user = await prisma.user.findUnique({
+    //                 where: { id: phoneNumber },
+    //             });
+    //             return this.getWelcomeMessage(!user);
+
+    //         default:
+    //             // Check if it's a natural language query
+    //             if (this.isNaturalQuery(command)) {
+    //                 // Check if it's a budget command
+    //                 if (this.isBudgetCommand(command)) {
+    //                     return await BudgetManager.parseAndSetBudget(
+    //                         command,
+    //                         prisma,
+    //                         phoneNumber
+    //                     );
+    //                 }
+    //                 // Otherwise, treat as analytics query
+    //                 return await ExpenseAnalytics.parseAndExecuteQuery(
+    //                     command,
+    //                     prisma,
+    //                     phoneNumber
+    //                 );
+    //             }
+
+    //             return this.getHelpMessage();
+    //     }
+    // }
 
     static async handleCommand(command, phoneNumber, prisma) {
         const cmd = command.toLowerCase().trim();
+
+        const ExpenseAnalytics = require("./expenseAnalytics");
+        const BudgetManager = require("./budgetManager");
 
         switch (cmd) {
             case "help":
@@ -129,19 +242,69 @@ Keep tracking! Send another expense or type 'help' for more options. 📊`;
             case "categories":
                 return await this.getCategoryBreakdown(phoneNumber, prisma);
 
+            case "budgets":
+                return await BudgetManager.listBudgets(prisma, phoneNumber);
+
+            case "budget status":
+                return await BudgetManager.checkBudgetStatus(
+                    prisma,
+                    phoneNumber
+                );
+
             case "start":
             case "hi":
             case "hello":
             case "hey":
-                // Check if user exists to determine welcome message
                 const user = await prisma.user.findUnique({
                     where: { id: phoneNumber },
                 });
                 return this.getWelcomeMessage(!user);
 
             default:
+                if (this.isNaturalQuery(command)) {
+                    if (this.isBudgetCommand(command)) {
+                        return await BudgetManager.parseAndSetBudget(
+                            command,
+                            prisma,
+                            phoneNumber
+                        );
+                    }
+                    return await ExpenseAnalytics.parseAndExecuteQuery(
+                        command,
+                        prisma,
+                        phoneNumber
+                    );
+                }
+
                 return this.getHelpMessage();
         }
+    }
+
+    static isNaturalQuery(text) {
+        const queryPatterns = [
+            /how much.*spend.*on/i,
+            /show.*total.*expenses/i,
+            /show.*expenses/i,
+            /show.*my.*expenses/i,
+            /expenses.*for.*month/i,
+            /expenses.*this.*month/i,
+            /top.*categories/i,
+            /set.*budget/i,
+            /budget.*for/i,
+            /spend.*this/i,
+            /spend.*last/i,
+            /monthly.*expenses/i,
+            /weekly.*expenses/i,
+            /daily.*expenses/i,
+        ];
+
+        return queryPatterns.some((pattern) => pattern.test(text));
+    }
+
+    static isBudgetCommand(text) {
+        const budgetPatterns = [/set.*budget/i, /budget.*for/i];
+
+        return budgetPatterns.some((pattern) => pattern.test(text));
     }
 
     static async getSummaryMessage(phoneNumber, prisma) {

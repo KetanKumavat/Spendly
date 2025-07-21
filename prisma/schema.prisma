@@ -20,6 +20,7 @@ model User {
   createdAt       DateTime  @default(now())
   expenses        Expense[]
   sessions        Session[]
+  budgets         Budget[]
 }
 
 model Session {
@@ -46,4 +47,21 @@ model Expense {
   createdAt       DateTime  @default(now())
   rawText        String?
   structuredData Json?
+}
+
+model Budget {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [userId], references: [id])
+  userId          String
+  category        String    // "Food", "Travel", "Shopping", etc.
+  amount          Float     // Budget limit
+  period          String    // "monthly", "weekly", "daily"
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  alertThreshold  Float     @default(0.8) // Alert at 80%
+  
+  @@unique([userId, category, period, startDate])
 }
