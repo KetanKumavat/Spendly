@@ -276,7 +276,8 @@ export default function HomePage() {
                                                         in action!
                                                     </p>
                                                     <p className="text-xs mt-1">
-                                                        Try: "Coffee 50rs"
+                                                        Try: &quot;Coffee
+                                                        50rs&quot;
                                                     </p>
                                                 </div>
                                             </motion.div>

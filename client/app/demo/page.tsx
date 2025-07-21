@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
     ArrowLeft,
-    Calendar,
     TrendingUp,
     PieChart,
     CreditCard,
@@ -12,7 +11,6 @@ import {
     Clock,
     Download,
     Filter,
-    Search,
     Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

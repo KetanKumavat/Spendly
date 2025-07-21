@@ -9,7 +9,7 @@ export interface Expense {
     imageUrl?: string;
     createdAt: string;
     rawText?: string;
-    structuredData?: any;
+    structuredData?: unknown;
 }
 
 export interface User {
