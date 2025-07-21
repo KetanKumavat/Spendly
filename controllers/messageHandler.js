@@ -4,6 +4,7 @@ const { PrismaClient } = require("@prisma/client");
 const { extractTextFromImage } = require("../utils/ocr");
 const { extractExpenseData } = require("../utils/gemini");
 const sendWhatsApp = require("../utils/twilioWhatsapp");
+const SpendlyBot = require("../utils/spendlyBot");
 
 const prisma = new PrismaClient();
 
@@ -21,7 +22,7 @@ const prisma = new PrismaClient();
 //     try {
 //         if (type === "text") {
 //             const text = message.text.body;
-//             console.log(`📩 Text: ${text}`);
+//             console.log(`Text: ${text}`);
 
 //             let user = await prisma.user.findUnique({
 //                 where: { id: from },
@@ -40,7 +41,7 @@ const prisma = new PrismaClient();
 //             try {
 //                 console.log("Sending plain text to Gemini for parsing...");
 //                 expenseData = await extractExpenseData(text);
-//                 console.log("✅ Parsed Text Expense:", expenseData);
+//                 console.log("Parsed Text Expense:", expenseData);
 
 //                 const saved = await prisma.expense.create({
 //                     data: {
@@ -57,7 +58,7 @@ const prisma = new PrismaClient();
 //                     },
 //                 });
 
-//                 const feedbackMsg = `✅ Saved ₹${expenseData.total || 0} for "${
+//                 const feedbackMsg = `Saved ₹${expenseData.total || 0} for "${
 //                     expenseData.vendor || "item"
 //                 }" on ${expenseData.date || "today"}.`;
 
@@ -78,7 +79,7 @@ const prisma = new PrismaClient();
 
 //                 await sendWhatsApp(from, feedbackMsg);
 //             } catch (err) {
-//                 console.error("❌ Text parsing failed:", err);
+//                 console.error("Text parsing failed:", err);
 
 //                 // await axios.post(
 //                 //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
@@ -86,7 +87,7 @@ const prisma = new PrismaClient();
 //                 //         messaging_product: "whatsapp",
 //                 //         to: from,
 //                 //         text: {
-//                 //             body: `❌ Sorry, I couldn't understand that. Try sending like: "30rs lunch at canteen" or send a bill image.`,
+//                 //             body: `Sorry, I couldn't understand that. Try sending like: "30rs lunch at canteen" or send a bill image.`,
 //                 //         },
 //                 //     },
 //                 //     {
@@ -99,14 +100,14 @@ const prisma = new PrismaClient();
 
 //                 await sendWhatsApp(
 //                     from,
-//                     '❌ Sorry, I couldn\'t understand that. Try sending like: "30rs lunch at canteen" or send a bill image.'
+//                     'Sorry, I couldn\'t understand that. Try sending like: "30rs lunch at canteen" or send a bill image.'
 //                 );
 //             }
 //         }
 
 //         if (type === "image") {
 //             const imageId = message.image.id;
-//             console.log(`📷 Image ID: ${imageId}`);
+//             console.log(`Image ID: ${imageId}`);
 
 //             const token = process.env.META_TOKEN;
 
@@ -124,7 +125,7 @@ const prisma = new PrismaClient();
 //                 { folder: "whatsapp-expenses" },
 //                 async (error, result) => {
 //                     if (error) {
-//                         console.error("❌ Cloudinary error", error);
+//                         console.error("Cloudinary error", error);
 
 //                         // await axios.post(
 //                         //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
@@ -132,7 +133,7 @@ const prisma = new PrismaClient();
 //                         //         messaging_product: "whatsapp",
 //                         //         to: from,
 //                         //         text: {
-//                         //             body: `❌ Sorry, there was an error uploading your image. Please try again later.`,
+//                         //             body: `Sorry, there was an error uploading your image. Please try again later.`,
 //                         //         },
 //                         //     },
 //                         //     {
@@ -145,7 +146,7 @@ const prisma = new PrismaClient();
 
 //                         await sendWhatsApp(
 //                             from,
-//                             "❌ Sorry, there was an error uploading your image. Please try again later."
+//                             "Sorry, there was an error uploading your image. Please try again later."
 //                         );
 
 //                         return;
@@ -155,18 +156,18 @@ const prisma = new PrismaClient();
 //                     let expenseData = {};
 
 //                     try {
-//                         console.log("🔍 Extracting text using OCR...");
+//                         console.log("Extracting text using OCR...");
 //                         ocrText = await extractTextFromImage(result.secure_url);
-//                         console.log("✅ OCR Text:", ocrText);
+//                         console.log("OCR Text:", ocrText);
 
 //                         console.log(
 //                             "🔎 Sending text to Gemini for structuring..."
 //                         );
 //                         expenseData = await extractExpenseData(ocrText);
-//                         console.log("✅ Structured Data:", expenseData);
+//                         console.log("Structured Data:", expenseData);
 //                     } catch (ocrOrGeminiError) {
 //                         console.error(
-//                             "❌ OCR or Gemini failed:",
+//                             "OCR or Gemini failed:",
 //                             ocrOrGeminiError
 //                         );
 
@@ -189,7 +190,7 @@ const prisma = new PrismaClient();
 //                         //         messaging_product: "whatsapp",
 //                         //         to: from,
 //                         //         text: {
-//                         //             body: `⚠️ Expense details couldn't be extracted, but the bill has been saved.\nWe'll improve this soon!`,
+//                         //             body: `Expense details couldn't be extracted, but the bill has been saved.\nWe'll improve this soon!`,
 //                         //         },
 //                         //     },
 //                         //     {
@@ -202,7 +203,7 @@ const prisma = new PrismaClient();
 
 //                         await sendWhatsApp(
 //                             from,
-//                             "⚠️ Expense details couldn't be extracted, but the bill has been saved.\nWe'll improve this soon!"
+//                             "Expense details couldn't be extracted, but the bill has been saved.\nWe'll improve this soon!"
 //                         );
 
 //                         return;
@@ -225,9 +226,9 @@ const prisma = new PrismaClient();
 //                         },
 //                     });
 
-//                     console.log("✅ Expense saved to DB");
+//                     console.log("Expense saved to DB");
 
-//                     const feedbackMsg = `✅ Expense saved!\nVendor: ${vendor}\nAmount: ₹${amount}\nDate: ${dateStr}`;
+//                     const feedbackMsg = `Expense saved!\nVendor: ${vendor}\nAmount: ₹${amount}\nDate: ${dateStr}`;
 
 //                     // await axios.post(
 //                     //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
@@ -253,7 +254,7 @@ const prisma = new PrismaClient();
 
 //         res.sendStatus(200);
 //     } catch (err) {
-//         console.error("❌ Unhandled error in handler:", err);
+//         console.error("Unhandled error in handler:", err);
 
 //         // await axios.post(
 //         //     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
@@ -274,7 +275,7 @@ const prisma = new PrismaClient();
 
 //         await sendWhatsApp(
 //             from,
-//             "🚨 Unexpected error occurred. Please retry or contact support."
+//             "Unexpected error occurred. Please retry or contact support."
 //         );
 
 //         res.sendStatus(500);
@@ -282,54 +283,131 @@ const prisma = new PrismaClient();
 // };
 
 //using twilio api
+
+const MessagingResponse = require("twilio").twiml.MessagingResponse;
+
 module.exports = async (req, res) => {
     try {
-        console.log("📬 Incoming Twilio webhook:", req.body);
-
-        if (req.body.MessageStatus || req.body.SmsStatus || req.body.Payload) {
-            console.log("📊 Status callback received:", {
-                messageStatus: req.body.MessageStatus,
-                smsStatus: req.body.SmsStatus,
-                messageSid: req.body.MessageSid || req.body.SmsSid,
-            });
-            return res.sendStatus(200);
+        if (
+            (req.body.MessageStatus && req.body.MessageStatus !== "received") ||
+            (req.body.SmsStatus && req.body.SmsStatus !== "received") ||
+            req.body.Payload
+        ) {
+            // console.log("Status callback received:", {
+            //     messageStatus: req.body.MessageStatus,
+            //     smsStatus: req.body.SmsStatus,
+            //     messageSid: req.body.MessageSid || req.body.SmsSid,
+            // });
+            const twiml = new MessagingResponse();
+            res.type("text/xml");
+            return res.send(twiml.toString());
         }
 
         const from = req.body.From;
         const body = req.body.Body;
         const numMedia = parseInt(req.body.NumMedia) || 0;
 
+        // console.log("Extracted data:", { from, body, numMedia });
+
         if (!from) {
             console.warn(
                 "Twilio message payload malformed - missing From:",
                 req.body
             );
-            return res.sendStatus(400);
+            const twiml = new MessagingResponse();
+            res.type("text/xml");
+            return res.send(twiml.toString());
         }
 
         const phoneNumber = from.replace("whatsapp:", "");
-        console.log(`📩 New message from ${phoneNumber}`);
+        // console.log(`New message from ${phoneNumber}: "${body}"`);
 
         let user = await prisma.user.findUnique({
             where: { id: phoneNumber },
         });
 
+        let isNewUser = false;
         if (!user) {
+            isNewUser = true;
             user = await prisma.user.create({
                 data: {
                     id: phoneNumber,
                     phoneNumber: phoneNumber,
+                    name: `User ${phoneNumber.slice(-4)}`,
                 },
             });
+        } else {
+            // console.log("Existing user found:", user.name);
         }
 
+        // text messages
         if (body && numMedia === 0) {
-            console.log(`📩 Text: ${body}`);
+            console.log(`Text: ${body}`);
+            console.log(`Is "${body}" a command?`, SpendlyBot.isCommand(body));
 
+            if (SpendlyBot.isCommand(body)) {
+                // console.log(`Command detected: ${body}`);
+                try {
+                    const response = await SpendlyBot.handleCommand(
+                        body,
+                        phoneNumber,
+                        prisma
+                    );
+
+                    await sendWhatsApp(phoneNumber, response);
+                    const twiml = new MessagingResponse();
+                    res.type("text/xml");
+                    return res.send(twiml.toString());
+                } catch (error) {
+                    console.error("Error handling command:", error);
+                    await sendWhatsApp(
+                        phoneNumber,
+                        "❌ Sorry, something went wrong. Please try again."
+                    );
+                    const twiml = new MessagingResponse();
+                    res.type("text/xml");
+                    return res.send(twiml.toString());
+                }
+            }
+
+            const lowerBody = body.toLowerCase().trim();
+            const greetings = ["hi", "hello", "hey", "start", "begin"];
+
+            if (greetings.some((greeting) => lowerBody === greeting)) {
+                if (isNewUser) {
+                    const welcomeMsg = SpendlyBot.getWelcomeMessage(true);
+                    await sendWhatsApp(phoneNumber, welcomeMsg);
+                } else {
+                    const welcomeMsg = SpendlyBot.getWelcomeMessage(false);
+                    await sendWhatsApp(phoneNumber, welcomeMsg);
+                }
+                const twiml = new MessagingResponse();
+                res.type("text/xml");
+                return res.send(twiml.toString());
+            }
+
+            if (isNewUser) {
+                const welcomeMsg = SpendlyBot.getWelcomeMessage(true);
+                await sendWhatsApp(phoneNumber, welcomeMsg);
+
+                await new Promise((resolve) => setTimeout(resolve, 3000));
+                await sendWhatsApp(
+                    phoneNumber,
+                    "Now, let's process your first expense! 🚀"
+                );
+            }
+
+            // Process expense
             let expenseData = {};
             try {
+                // if (!isNewUser) {
+                //     await sendWhatsApp(
+                //         phoneNumber,
+                //         SpendlyBot.getProcessingMessage(false)
+                //     );
+                // }
+
                 expenseData = await extractExpenseData(body);
-                console.log("✅ Parsed:", expenseData);
 
                 await prisma.expense.create({
                     data: {
@@ -346,34 +424,35 @@ module.exports = async (req, res) => {
                     },
                 });
 
-                const feedbackMsg = `✅ Saved ₹${expenseData.total || 0} for "${
-                    expenseData.vendor || "item"
-                }" on ${expenseData.date || "today"}.`;
-
-                await sendWhatsApp(phoneNumber, feedbackMsg);
-            } catch (e) {
-                console.error("❌ Gemini parsing failed:", e);
-                await sendWhatsApp(
-                    phoneNumber,
-                    '❌ Sorry, I couldn\'t understand that. Try sending like: "30rs lunch at canteen" or send a bill image.'
+                const successMsg = SpendlyBot.getSuccessMessage(
+                    expenseData,
+                    false
                 );
+                await sendWhatsApp(phoneNumber, successMsg);
+            } catch (e) {
+                // console.error("Gemini parsing failed:", e);
+                const errorMsg = SpendlyBot.getErrorMessage("parsing");
+                await sendWhatsApp(phoneNumber, errorMsg);
             }
-        }
-
-        //image messages
-        else if (numMedia > 0) {
-            console.log(`📷 Received ${numMedia} media files`);
+        } else if (numMedia > 0) {
+            // console.log(`Received ${numMedia} media files`);
 
             const mediaUrl = req.body.MediaUrl0;
             const mediaContentType = req.body.MediaContentType0;
 
             if (!mediaUrl || !mediaContentType.startsWith("image/")) {
-                await sendWhatsApp(
-                    phoneNumber,
-                    "❌ Please send an image of your bill or receipt."
-                );
-                return res.sendStatus(200);
+                const errorMsg = SpendlyBot.getErrorMessage("image");
+                await sendWhatsApp(phoneNumber, errorMsg);
+                const twiml = new MessagingResponse();
+                res.type("text/xml");
+                return res.send(twiml.toString());
             }
+
+            //wait - processing message
+            // await sendWhatsApp(
+            //     phoneNumber,
+            //     SpendlyBot.getProcessingMessage(true)
+            // );
 
             try {
                 const response = await axios.get(mediaUrl, {
@@ -390,11 +469,10 @@ module.exports = async (req, res) => {
                     { folder: "whatsapp-expenses" },
                     async (error, result) => {
                         if (error) {
-                            console.error("❌ Cloudinary error", error);
-                            await sendWhatsApp(
-                                phoneNumber,
-                                "❌ Sorry, there was an error uploading your image. Please try again later."
-                            );
+                            console.error("Cloudinary error", error);
+                            const errorMsg =
+                                SpendlyBot.getErrorMessage("general");
+                            await sendWhatsApp(phoneNumber, errorMsg);
                             return;
                         }
 
@@ -402,20 +480,20 @@ module.exports = async (req, res) => {
                         let expenseData = {};
 
                         try {
-                            console.log("🔍 Extracting text using OCR...");
+                            console.log("Extracting text using OCR...");
                             ocrText = await extractTextFromImage(
                                 result.secure_url
                             );
-                            console.log("✅ OCR Text:", ocrText);
+                            // console.log("OCR Text:", ocrText);
 
                             console.log(
-                                "🔎 Sending text to Gemini for structuring..."
+                                "Sending text to Gemini for structuring..."
                             );
                             expenseData = await extractExpenseData(ocrText);
-                            console.log("✅ Structured Data:", expenseData);
+                            // console.log("Structured Data:", expenseData);
                         } catch (ocrOrGeminiError) {
                             console.error(
-                                "❌ OCR or Gemini failed:",
+                                "OCR or Gemini failed:",
                                 ocrOrGeminiError
                             );
 
@@ -432,10 +510,16 @@ module.exports = async (req, res) => {
                                 },
                             });
 
-                            await sendWhatsApp(
-                                phoneNumber,
-                                "⚠️ Expense details couldn't be extracted, but the bill has been saved.\nWe'll improve this soon!"
-                            );
+                            const errorMsg = `⚠️ *Couldn't extract expense details*
+
+Your bill has been saved, but I couldn't read the details automatically. 
+
+💡 *Try:*
+• Sending a clearer photo
+• Or tell me manually: "50rs coffee at cafe"
+
+I'll keep improving! 🚀`;
+                            await sendWhatsApp(phoneNumber, errorMsg);
                             return;
                         }
 
@@ -454,35 +538,37 @@ module.exports = async (req, res) => {
                             },
                         });
 
-                        const feedbackMsg = `✅ Saved ₹${
-                            expenseData.total || 0
-                        } for "${expenseData.vendor || "item"}" on ${
-                            expenseData.date || "today"
-                        }.`;
-
-                        await sendWhatsApp(phoneNumber, feedbackMsg);
+                        const successMsg = SpendlyBot.getSuccessMessage(
+                            expenseData,
+                            true
+                        );
+                        await sendWhatsApp(phoneNumber, successMsg);
                     }
                 );
 
                 stream.end(buffer);
             } catch (error) {
-                console.error("❌ Error processing image:", error);
-                await sendWhatsApp(
-                    phoneNumber,
-                    "❌ Sorry, there was an error processing your image. Please try again."
-                );
+                console.error("Error processing image:", error);
+                const errorMsg = SpendlyBot.getErrorMessage("general");
+                await sendWhatsApp(phoneNumber, errorMsg);
             }
         } else {
-            console.log("📝 Empty message received");
-            await sendWhatsApp(
-                phoneNumber,
-                "👋 Hi! Send me your expense text like '50rs coffee at cafe' or upload a bill image!"
-            );
+            if (isNewUser) {
+                const welcomeMsg = SpendlyBot.getWelcomeMessage(true);
+                await sendWhatsApp(phoneNumber, welcomeMsg);
+            } else {
+                const helpMsg = SpendlyBot.getWelcomeMessage(false);
+                await sendWhatsApp(phoneNumber, helpMsg);
+            }
         }
 
-        res.sendStatus(200);
+        const twiml = new MessagingResponse();
+        res.type("text/xml");
+        res.send(twiml.toString());
     } catch (err) {
         console.error("❌ Server error:", err);
-        res.sendStatus(500);
+        const twiml = new MessagingResponse();
+        res.type("text/xml");
+        res.status(500).send(twiml.toString());
     }
 };

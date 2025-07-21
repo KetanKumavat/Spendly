@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const messageHandler = require("../controllers/messageHandler");
 
-// Meta WhatsApp webhook verification
+// Meta WhatsApp webhook
 router.get("/", (req, res) => {
     const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
     const mode = req.query["hub.mode"];
@@ -17,19 +17,16 @@ router.get("/", (req, res) => {
     }
 });
 
-// Twilio WhatsApp webhook
 router.post("/", messageHandler);
 
 router.post("/status", (req, res) => {
-    console.log("📊 Message status update:", {
-        messageSid: req.body.MessageSid || req.body.SmsSid,
-        status: req.body.MessageStatus || req.body.SmsStatus,
-        to: req.body.To,
-        from: req.body.From,
-        timestamp: new Date().toISOString(),
-    });
-
-    // Just acknowledge status callbacks
+    // console.log("📊 Message status update:", {
+    //     messageSid: req.body.MessageSid || req.body.SmsSid,
+    //     status: req.body.MessageStatus || req.body.SmsStatus,
+    //     to: req.body.To,
+    //     from: req.body.From,
+    //     timestamp: new Date().toISOString(),
+    // });
     res.sendStatus(200);
 });
 
