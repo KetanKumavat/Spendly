@@ -21,7 +21,8 @@
         "cors": "^2.8.5",
         "dotenv": "^17.2.0",
         "express": "^5.1.0",
-        "multer": "^2.0.2"
+        "multer": "^2.0.2",
+        "twilio": "^5.7.3"
     },
     "devDependencies": {
         "prisma": "^6.12.0"
