@@ -11,7 +11,7 @@ async function sendWhatsApp(to, message) {
             from: process.env.TWILIO_PHONE_NUMBER,
             to: `whatsapp:${to}`,
         });
-        // console.log("Sent via Twilio:", msg.sid);
+        console.log("Sent via Twilio:", msg.sid);
     } catch (err) {
         console.error("Twilio send failed:", err.message);
     }

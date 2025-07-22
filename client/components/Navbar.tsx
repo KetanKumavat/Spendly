@@ -89,15 +89,38 @@ const Navbar = () => {
 
                         <div className="bg-blue-50 rounded-lg p-4 text-left">
                             <p className="text-sm text-blue-800">
-                                <strong>📱 New to Spendly?</strong>
+                                <strong>📱 First time user?</strong>
                                 <br />
-                                First, start tracking expenses by sending
-                                messages like:
+                                1. Send{" "}
+                                <code className="bg-blue-200 px-1 rounded">
+                                    join hold-seed
+                                </code>{" "}
+                                to join our WhatsApp bot
                                 <br />
-                                <em>&quot;50rs coffee at CCD&quot;</em> or
-                                sending bill photos
+                                2. Then send{" "}
+                                <code className="bg-blue-200 px-1 rounded">
+                                    login
+                                </code>{" "}
+                                to get dashboard access
+                                <br />
+                                3. Start tracking:{" "}
+                                <em>&quot;50rs coffee at CCD&quot;</em>
                             </p>
                         </div>
+
+                        <Button
+                            className="w-full bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                                window.open(
+                                    "https://wa.me/14155238886?text=join%20hold-seed",
+                                    "_blank"
+                                );
+                                setShowLoginModal(false);
+                            }}
+                        >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            Open WhatsApp
+                        </Button>
 
                         <div className="flex flex-col space-y-2">
                             <p className="text-xs text-gray-500">

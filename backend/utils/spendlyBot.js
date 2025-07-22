@@ -1,3 +1,6 @@
+const axios = require("axios");
+const sendWhatsApp = require("./twilioWhatsapp");
+
 class SpendlyBot {
     static getWelcomeMessage(isNewUser = false) {
         if (isNewUser) {
@@ -276,7 +279,7 @@ Keep tracking! Send another expense or type 'help' for more options. 📊${dashb
 
             case "login":
             case "dashboard":
-                return await this.generateDashboardLink(phoneNumber);
+                return await SpendlyBot.generateDashboardLink(phoneNumber);
 
             default:
                 if (this.isNaturalQuery(command)) {
@@ -298,34 +301,35 @@ Keep tracking! Send another expense or type 'help' for more options. 📊${dashb
         }
     }
 
-    static async generateDashboardLink(phoneNumber) {
+    static async generateDashboardLink(phone) {
         try {
-            const axios = require("axios");
-            const API_URL = process.env.API_URL || "http://localhost:3000";
+            console.log(`Generating dashboard link for: ${phone}`);
 
             const response = await axios.post(
-                `${API_URL}/auth/whatsapp-login`,
+                `${
+                    process.env.BACKEND_URL || "http://localhost:3000"
+                }/auth/whatsapp-login`,
+                { phone },
                 {
-                    phone: phoneNumber,
+                    headers: { "Content-Type": "application/json" },
+                    allowAbsoluteUrls: true,
                 }
             );
 
-            if (response.data && response.data.success) {
-                return `✅ *Dashboard link sent to your WhatsApp!*
+            console.log("Auth response:", response.data);
 
-Check your messages for the secure login link.
-
-🔒 The link is valid for 15 minutes
-� Access your complete expense analytics
-💰 View budgets and spending insights
-
-*New here?* The dashboard shows all your tracked expenses in beautiful charts and tables!`;
-            } else {
-                return "❌ Failed to generate dashboard link. Please try again.";
+            if (!response.data.success) {
+                await sendWhatsApp(
+                    phone,
+                    "❌ Failed to generate dashboard link. Please try again later."
+                );
             }
         } catch (error) {
             console.error("Dashboard link generation failed:", error);
-            return "❌ Failed to generate dashboard link. Please try again later.";
+            await sendWhatsApp(
+                phone,
+                "❌ Sorry, there was an error generating your dashboard link. Please try again later."
+            );
         }
     }
 

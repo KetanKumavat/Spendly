@@ -443,7 +443,7 @@ export default function DemoPage() {
                             variant="secondary"
                             onClick={() =>
                                 window.open(
-                                    "https://wa.me/918169393984?text=Hi! I want to start tracking my expenses",
+                                    "https://wa.me/14155238886?text=join%20hold-seed",
                                     "_blank"
                                 )
                             }
@@ -454,7 +454,7 @@ export default function DemoPage() {
                             <Button
                                 size="lg"
                                 variant="outline"
-                                className="border-white/30 text-white hover:bg-white/10"
+                                className="border-white/30 border-2 text-white bg-transparent hover:bg-white/10"
                             >
                                 Back to Home
                             </Button>

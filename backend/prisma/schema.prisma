@@ -12,6 +12,7 @@ model User {
   phoneNumber String    @unique
   createdAt   DateTime  @default(now())
   name        String
+  isFirstTime Boolean   @default(true)
   budgets     Budget[]
   expenses    Expense[]
   sessions    Session[]

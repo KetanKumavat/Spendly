@@ -19,8 +19,8 @@ const Footer = () => {
         },
     };
 
-    const whatsappUrl = `https://wa.me/918169393984?text=${encodeURIComponent(
-        "Hi! I want to start tracking my expenses"
+    const whatsappUrl = `https://wa.me/14155238886?text=${encodeURIComponent(
+        "join hold-seed"
     )}`;
     return (
         <div>

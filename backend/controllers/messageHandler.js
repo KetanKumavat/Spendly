@@ -14,6 +14,81 @@ const geminiService = new GeminiService();
 //using twilio api
 const MessagingResponse = require("twilio").twiml.MessagingResponse;
 
+const messageRateLimit = new Map();
+const MAX_DAILY_MESSAGES = 10;
+const DAILY_WINDOW = 24 * 60 * 60 * 1000;
+
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, data] of messageRateLimit.entries()) {
+        if (now - data.lastReset > DAILY_WINDOW) {
+            messageRateLimit.delete(key);
+        }
+    }
+}, 60 * 60 * 1000);
+
+function checkRateLimit(phoneNumber) {
+    const now = Date.now();
+    const key = phoneNumber;
+
+    if (!messageRateLimit.has(key)) {
+        messageRateLimit.set(key, {
+            dailyCount: 0,
+            lastReset: now,
+            isBlocked: false,
+        });
+    }
+
+    const data = messageRateLimit.get(key);
+
+    if (now - data.lastReset > DAILY_WINDOW) {
+        data.dailyCount = 0;
+        data.lastReset = now;
+        data.isBlocked = false;
+    }
+
+    if (data.isBlocked) {
+        const resetHours = Math.ceil(
+            (DAILY_WINDOW - (now - data.lastReset)) / (1000 * 60 * 60)
+        );
+        return {
+            allowed: false,
+            reason: "blocked",
+            resetIn: DAILY_WINDOW - (now - data.lastReset),
+            resetHours: resetHours,
+            current: data.dailyCount,
+            limit: MAX_DAILY_MESSAGES,
+        };
+    }
+
+    if (data.dailyCount >= MAX_DAILY_MESSAGES) {
+        data.isBlocked = true;
+        messageRateLimit.set(key, data);
+
+        const resetHours = Math.ceil(
+            (DAILY_WINDOW - (now - data.lastReset)) / (1000 * 60 * 60)
+        );
+        return {
+            allowed: false,
+            reason: "daily_limit_exceeded",
+            resetIn: DAILY_WINDOW - (now - data.lastReset),
+            resetHours: resetHours,
+            current: data.dailyCount,
+            limit: MAX_DAILY_MESSAGES,
+        };
+    }
+
+    data.dailyCount++;
+    messageRateLimit.set(key, data);
+
+    return {
+        allowed: true,
+        remaining: MAX_DAILY_MESSAGES - data.dailyCount,
+        current: data.dailyCount,
+        limit: MAX_DAILY_MESSAGES,
+    };
+}
+
 module.exports = async (req, res) => {
     try {
         if (
@@ -50,27 +125,96 @@ module.exports = async (req, res) => {
         const phoneNumber = from.replace("whatsapp:", "");
         // console.log(`New message from ${phoneNumber}: "${body}"`);
 
+        const rateLimitCheck = checkRateLimit(phoneNumber);
+        if (!rateLimitCheck.allowed) {
+            const twiml = new MessagingResponse();
+            let message;
+
+            if (
+                rateLimitCheck.reason === "daily_limit_exceeded" ||
+                rateLimitCheck.reason === "blocked"
+            ) {
+                message = `🚫 *Daily Message Limit Exceeded*
+
+You've used all *${rateLimitCheck.limit} messages* for today (${rateLimitCheck.current}/${rateLimitCheck.limit}).
+
+Your number is now *blocked* for the next *${rateLimitCheck.resetHours} hours*.
+
+🌐 *Continue tracking expenses:*
+• Use our web dashboard for unlimited access
+• Type "dashboard" for the link
+
+⏰ *Reset:* Your limit will reset in ${rateLimitCheck.resetHours} hours.`;
+            }
+
+            twiml.message(message);
+            res.type("text/xml");
+            return res.send(twiml.toString());
+        }
+
+        if (rateLimitCheck.remaining <= 3 && rateLimitCheck.remaining > 0) {
+            const warningMessage = `⚠️ *Message Limit Warning*
+
+You have *${rateLimitCheck.remaining} messages* remaining today (${rateLimitCheck.current}/${rateLimitCheck.limit} used).
+
+💡 *Tip:* Use our web dashboard for unlimited access!`;
+
+            // Send warning asynchronously so it doesn't block processing
+            sendWhatsApp(phoneNumber, warningMessage).catch((err) =>
+                console.error("Failed to send warning message:", err)
+            );
+        }
+
         let user = await prisma.user.findUnique({
             where: { id: phoneNumber },
         });
 
         let isNewUser = false;
+        let isFirstMessage = false;
         if (!user) {
             isNewUser = true;
+            isFirstMessage = true;
             user = await prisma.user.create({
                 data: {
                     id: phoneNumber,
                     phoneNumber: phoneNumber,
                     name: `User ${phoneNumber.slice(-4)}`,
+                    isFirstTime: true, // Mark
                 },
             });
-        } else {
-            // console.log("Existing user found:", user.name);
+        } else if (user.isFirstTime) {
+            isFirstMessage = true;
         }
 
         // text messages
         if (body && numMedia === 0) {
             console.log(`Text: ${body}`);
+
+            if (isFirstMessage) {
+                await prisma.user.update({
+                    where: { id: phoneNumber },
+                    data: { isFirstTime: false },
+                });
+
+                const welcomeMessage = `🎉 *Welcome to Spendly!*
+
+Great! I can see you've successfully joined our WhatsApp expense tracker! 
+
+✨ *What can I do for you?*
+• 💸 Track expenses: Just tell me "50rs coffee" or "1200 groceries"
+• 📷 Upload receipts: Send photos of bills for automatic extraction
+• 📊 Get insights: Type "summary" for spending analytics
+• 🔗 Dashboard: Type "dashboard" for web access
+• ❓ Help: Type "help" for all commands
+
+*Let's process your message!* 👇`;
+
+                await sendWhatsApp(phoneNumber, welcomeMessage);
+
+                // Add a small delay before processing their actual message
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+
             console.log(`Is "${body}" a command?`, SpendlyBot.isCommand(body));
 
             if (SpendlyBot.isCommand(body)) {
@@ -102,9 +246,10 @@ module.exports = async (req, res) => {
             const greetings = ["hi", "hello", "hey", "start", "begin"];
 
             if (greetings.some((greeting) => lowerBody === greeting)) {
-                if (isNewUser) {
-                    const welcomeMsg = SpendlyBot.getWelcomeMessage(true);
-                    await sendWhatsApp(phoneNumber, welcomeMsg);
+                if (isNewUser || isFirstMessage) {
+                    const followUpMsg =
+                        "Perfect! Now try sending an expense like '50rs coffee' or '1200 groceries' to get started! 🚀";
+                    await sendWhatsApp(phoneNumber, followUpMsg);
                 } else {
                     const welcomeMsg = SpendlyBot.getWelcomeMessage(false);
                     await sendWhatsApp(phoneNumber, welcomeMsg);
@@ -112,17 +257,6 @@ module.exports = async (req, res) => {
                 const twiml = new MessagingResponse();
                 res.type("text/xml");
                 return res.send(twiml.toString());
-            }
-
-            if (isNewUser) {
-                const welcomeMsg = SpendlyBot.getWelcomeMessage(true);
-                await sendWhatsApp(phoneNumber, welcomeMsg);
-
-                await new Promise((resolve) => setTimeout(resolve, 3000));
-                await sendWhatsApp(
-                    phoneNumber,
-                    "Now, let's process your first expense! 🚀"
-                );
             }
 
             // Process expense
@@ -183,6 +317,31 @@ module.exports = async (req, res) => {
                 await sendWhatsApp(phoneNumber, errorMsg);
             }
         } else if (numMedia > 0) {
+            if (isFirstMessage) {
+                await prisma.user.update({
+                    where: { id: phoneNumber },
+                    data: { isFirstTime: false },
+                });
+
+                const welcomeMessage = `🎉 *Welcome to Spendly!*
+
+Great! I can see you've successfully joined our WhatsApp expense tracker and sent a receipt! 
+
+✨ *What can I do for you?*
+• 💸 Track expenses: Just tell me "50rs coffee" or "1200 groceries"
+• 📷 Upload receipts: Send photos of bills for automatic extraction
+• 📊 Get insights: Type "summary" for spending analytics
+• 🔗 Dashboard: Type "dashboard" for web access
+• ❓ Help: Type "help" for all commands
+
+*Let me process your receipt now!* 👇`;
+
+                await sendWhatsApp(phoneNumber, welcomeMessage);
+
+                // Add a small delay before processing the image
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+
             // console.log(`Received ${numMedia} media files`);
 
             const mediaUrl = req.body.MediaUrl0;
@@ -320,7 +479,27 @@ I'll keep improving! 🚀`;
                 await sendWhatsApp(phoneNumber, errorMsg);
             }
         } else {
-            if (isNewUser) {
+            if (isFirstMessage) {
+                await prisma.user.update({
+                    where: { id: phoneNumber },
+                    data: { isFirstTime: false },
+                });
+
+                const welcomeMessage = `🎉 *Welcome to Spendly!*
+
+Great! I can see you've successfully joined our WhatsApp expense tracker! 
+
+✨ *What can I do for you?*
+• 💸 Track expenses: Just tell me "50rs coffee" or "1200 groceries"
+• 📷 Upload receipts: Send photos of bills for automatic extraction
+• 📊 Get insights: Type "summary" for spending analytics
+• 🔗 Dashboard: Type "dashboard" for web access
+• ❓ Help: Type "help" for all commands
+
+*Try sending your first expense!* For example: "100rs lunch at McDonald's" 🚀`;
+
+                await sendWhatsApp(phoneNumber, welcomeMessage);
+            } else if (isNewUser) {
                 const welcomeMsg = SpendlyBot.getWelcomeMessage(true);
                 await sendWhatsApp(phoneNumber, welcomeMsg);
             } else {

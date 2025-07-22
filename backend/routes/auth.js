@@ -105,7 +105,13 @@ router.post("/whatsapp-login", async (req, res) => {
     if (!phone) return res.status(400).json({ error: "Phone number required" });
 
     try {
-        // Clean phone number (remove whatsapp: prefix if present)
+        if (!JWT_SECRET) {
+            console.error("JWT_SECRET is not configured");
+            return res
+                .status(500)
+                .json({ error: "Server configuration error" });
+        }
+
         const cleanPhone = phone.replace("whatsapp:", "");
 
         let user = await prisma.user.findUnique({
@@ -123,14 +129,14 @@ router.post("/whatsapp-login", async (req, res) => {
         }
 
         const token = jwt.sign({ phone: cleanPhone }, JWT_SECRET, {
-            expiresIn: "15m",
+            expiresIn: "1h",
         });
 
         const magicLink = `${
             process.env.FRONTEND_URL || "http://localhost:3001"
         }/dashboard?token=${token}`;
 
-        const whatsappMessage = `🔗 *Your Spendly Dashboard Link*
+        const whatsappMessage = `🔗 Your Spendly Dashboard Link
 
 ${magicLink}
 
@@ -138,7 +144,7 @@ ${magicLink}
 🔒 Secure access to your expense analytics
 📊 View your spending insights and budgets
 
-*Tip:* Bookmark this page after logging in!`;
+Tip: Bookmark this page after logging in!`;
 
         await sendWhatsApp(cleanPhone, whatsappMessage);
 
@@ -150,6 +156,10 @@ ${magicLink}
         console.error("WhatsApp login error:", error);
         return res.status(500).json({
             error: "Failed to send login link",
+            details:
+                process.env.NODE_ENV === "development"
+                    ? error.message
+                    : undefined,
         });
     }
 });

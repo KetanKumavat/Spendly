@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
     MessageCircle,
@@ -11,8 +11,11 @@ import {
     Play,
     Send,
     Mic,
+    RefreshCcw,
+    LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WhatsAppTooltip } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
@@ -37,45 +40,146 @@ const staggerChildren = {
 export default function HomePage() {
     const [demoStep, setDemoStep] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+    const [demoInput, setDemoInput] = useState("");
+    const [demoMessages, setDemoMessages] = useState<
+        Array<{ type: "user" | "bot"; text: string; time: string }>
+    >([]);
+    const [isTyping, setIsTyping] = useState(false);
     const { scrollY } = useScroll();
     const y1 = useTransform(scrollY, [0, 300], [0, -50]);
 
-    const demoMessages = [
-        { type: "user", text: "Paid 250rs for Zomato lunch", time: "2:30 PM" },
-        {
-            type: "bot",
-            text: "✅ Expense saved!\n💰 ₹250 - Food & Dining\n🏪 Vendor: Zomato\n📅 Today\n\nYour food budget: ₹2,750/₹5,000 (55%)",
-            time: "2:30 PM",
-        },
+    const suggestedMessages = [
+        "50rs coffee at Starbucks",
+        "1200 groceries from BigBasket",
+        "300rs Uber ride",
+        "150 lunch at KFC",
+        "75rs tea and snacks",
     ];
 
-    const whatsappUrl = `https://wa.me/918169393984?text=${encodeURIComponent(
-        "Hi! I want to start tracking my expenses"
+    const botResponses: Record<string, string> = {
+        "50rs coffee at starbucks":
+            "✅ Expense saved!\n💰 ₹50 - Food & Dining\n🏪 Vendor: Starbucks\n📅 Today\n\nYour food budget: ₹1,450/₹5,000 (29%)",
+        "1200 groceries from bigbasket":
+            "✅ Expense saved!\n💰 ₹1,200 - Groceries\n🏪 Vendor: BigBasket\n📅 Today\n\nYour grocery budget: ₹3,200/₹8,000 (40%)",
+        "300rs uber ride":
+            "✅ Expense saved!\n💰 ₹300 - Transportation\n🏪 Vendor: Uber\n📅 Today\n\nYour transport budget: ₹800/₹3,000 (27%)",
+        "150 lunch at kfc":
+            "✅ Expense saved!\n💰 ₹150 - Food & Dining\n🏪 Vendor: KFC\n📅 Today\n\nYour food budget: ₹1,600/₹5,000 (32%)",
+        "75rs tea and snacks":
+            "✅ Expense saved!\n💰 ₹75 - Food & Dining\n🏪 Vendor: Local Store\n📅 Today\n\nYour food budget: ₹1,675/₹5,000 (34%)",
+    };
+
+    const whatsappUrl = `https://wa.me/14155238886?text=${encodeURIComponent(
+        "join hold-seed"
     )}`;
 
-    // Auto-play demo functionality
+    const getCurrentTime = () => {
+        const now = new Date();
+        return now.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
+    const handleSendMessage = useCallback(async () => {
+        if (!demoInput.trim()) return;
+
+        const userMessage = {
+            type: "user" as const,
+            text: demoInput,
+            time: getCurrentTime(),
+        };
+
+        // Add user message
+        setDemoMessages((prev) => [...prev, userMessage]);
+        const inputToProcess = demoInput;
+        setDemoInput("");
+        setIsTyping(true);
+
+        // Simulate AI processing delay
+        setTimeout(() => {
+            const normalizedInput = inputToProcess.toLowerCase().trim();
+            const response =
+                botResponses[normalizedInput] ||
+                "✅ Expense saved!\n💰 Amount processed\n📅 Today\n\nI'll learn to categorize this better next time! 🤖";
+
+            const botMessage = {
+                type: "bot" as const,
+                text: response,
+                time: getCurrentTime(),
+            };
+
+            setDemoMessages((prev) => [...prev, botMessage]);
+            setIsTyping(false);
+        }, 1500);
+    }, [demoInput, botResponses]);
+
+    const handleSuggestedMessage = (message: string) => {
+        setDemoInput(message);
+    };
+
+    const resetDemo = () => {
+        setDemoMessages([]);
+        setDemoInput("");
+        setIsTyping(false);
+    };
+
+    // Auto-play demo functionality (simplified)
     useEffect(() => {
-        if (isAutoPlaying) {
-            const interval = setInterval(() => {
-                setDemoStep((prev) => {
-                    if (prev === 0) return 1;
-                    if (prev === 1) return 2;
-                    return 0;
-                });
-            }, 2000);
-            return () => clearInterval(interval);
+        if (isAutoPlaying && demoMessages.length === 0) {
+            const randomMessage =
+                suggestedMessages[
+                    Math.floor(Math.random() * suggestedMessages.length)
+                ];
+            setDemoInput(randomMessage);
+            setTimeout(() => {
+                if (randomMessage.trim()) {
+                    setDemoMessages((prev) => [
+                        ...prev,
+                        {
+                            type: "user",
+                            text: randomMessage,
+                            time: getCurrentTime(),
+                        },
+                    ]);
+                    setDemoInput("");
+                    setIsTyping(true);
+
+                    setTimeout(() => {
+                        const normalizedInput = randomMessage
+                            .toLowerCase()
+                            .trim();
+                        const response =
+                            botResponses[normalizedInput] ||
+                            "✅ Expense saved!\n💰 Amount processed\n📅 Today\n\nI'll learn to categorize this better next time! 🤖";
+
+                        setDemoMessages((prev) => [
+                            ...prev,
+                            {
+                                type: "bot",
+                                text: response,
+                                time: getCurrentTime(),
+                            },
+                        ]);
+                        setIsTyping(false);
+                    }, 1500);
+                }
+            }, 1000);
         }
-    }, [isAutoPlaying]);
+    }, [isAutoPlaying, demoMessages.length]);
 
     const handleDemoInteraction = () => {
-        setIsAutoPlaying(false);
-        if (demoStep === 0) {
-            setDemoStep(1);
-            setTimeout(() => {
-                setDemoStep(2);
-            }, 1000);
+        if (demoInput.trim()) {
+            handleSendMessage();
+        } else if (demoMessages.length > 0) {
+            resetDemo();
         } else {
-            setDemoStep(0);
+            const randomMessage =
+                suggestedMessages[
+                    Math.floor(Math.random() * suggestedMessages.length)
+                ];
+            setDemoInput(randomMessage);
         }
     };
 
@@ -148,29 +252,28 @@ export default function HomePage() {
                             variants={fadeInUp}
                             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8"
                         >
-                            <Button
-                                size="lg"
-                                className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300"
-                                onClick={() =>
-                                    window.open(whatsappUrl, "_blank")
-                                }
-                            >
-                                <MessageCircle className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
-                                Start Free on WhatsApp
-                                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                            </Button>
+                            <WhatsAppTooltip>
+                                <Button
+                                    size="lg"
+                                    className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300"
+                                    onClick={() =>
+                                        window.open(whatsappUrl, "_blank")
+                                    }
+                                >
+                                    <MessageCircle className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
+                                    Start Free on WhatsApp
+                                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                </Button>
+                            </WhatsAppTooltip>
 
                             <Link href="/demo">
                                 <Button
                                     variant="outline"
                                     size="lg"
                                     className="px-8 py-4 border-gray-300 hover:bg-gray-50"
-                                    onClick={() =>
-                                        setIsAutoPlaying(!isAutoPlaying)
-                                    }
                                 >
-                                    <Play className="mr-2 h-5 w-5" />
-                                    Watch Demo
+                                    <LayoutDashboard className="mr-2 h-5 w-5" />
+                                    Demo Dashboard
                                 </Button>
                             </Link>
                         </motion.div>
@@ -180,7 +283,7 @@ export default function HomePage() {
                     <motion.div
                         variants={fadeInUp}
                         style={{ y: y1 }}
-                        className="relative z-20 w-full max-w-sm mx-auto mb-16"
+                        className="relative w-full max-w-sm mx-auto mb-16"
                     >
                         <div className="relative bg-gradient-to-br from-white to-gray-50 rounded-[2.5rem] shadow-2xl border border-gray-200/50 overflow-hidden backdrop-blur-sm p-2">
                             {/* Phone Frame */}
@@ -188,7 +291,7 @@ export default function HomePage() {
                                 <div className="w-full h-full bg-black rounded-[1.5rem] relative overflow-hidden flex flex-col min-h-[600px]">
                                     {/* Status Bar */}
                                     <div className="bg-gray-900 text-white px-6 py-3 flex justify-between items-center text-xs flex-shrink-0">
-                                        <span>9:41</span>
+                                        <span>{getCurrentTime()}</span>
                                         <div className="flex space-x-1">
                                             <div className="w-4 h-2 bg-white rounded-sm"></div>
                                             <div className="w-1 h-2 bg-white rounded-sm"></div>
@@ -201,100 +304,166 @@ export default function HomePage() {
                                             <Sparkles className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="font-semibold">
-                                                Spendly AI
+                                            <p className="text-left font-semibold">
+                                                Spendly
                                             </p>
-                                            <p className="text-xs text-green-100">
+                                            <p className="text-left text-xs text-green-100">
                                                 Online
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Chat Messages */}
-                                    <div className="flex-1 p-4 space-y-4 bg-gray-100 overflow-y-auto ">
-                                        {demoStep > 0 &&
-                                            demoMessages
-                                                .slice(0, demoStep)
-                                                .map((msg, idx) => (
-                                                    <motion.div
-                                                        key={idx}
-                                                        initial={{
-                                                            opacity: 0,
-                                                            x:
-                                                                msg.type ===
-                                                                "user"
-                                                                    ? 20
-                                                                    : -20,
-                                                        }}
-                                                        animate={{
-                                                            opacity: 1,
-                                                            x: 0,
-                                                        }}
-                                                        transition={{
-                                                            delay: idx * 0.5,
-                                                        }}
-                                                        className={`flex ${
+                                    <div className="flex-1 p-4 space-y-4 bg-gray-100 overflow-y-auto min-h-[300px]">
+                                        {demoMessages.length === 0 &&
+                                            !isTyping && (
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    className="flex flex-col justify-center items-center h-full"
+                                                >
+                                                    <div className="text-center text-gray-400 mb-6">
+                                                        <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                            <Sparkles className="w-6 h-6 text-gray-400" />
+                                                        </div>
+                                                        <p className="text-sm font-medium mb-1">
+                                                            Try our AI expense
+                                                            tracker!
+                                                        </p>
+                                                        <p className="text-xs">
+                                                            Type an expense or
+                                                            pick a suggestion
+                                                            below
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Suggested Messages */}
+                                                    <div className="space-y-2 w-full max-w-[85%]">
+                                                        {suggestedMessages
+                                                            .slice(0, 3)
+                                                            .map(
+                                                                (
+                                                                    suggestion,
+                                                                    idx
+                                                                ) => (
+                                                                    <motion.button
+                                                                        key={
+                                                                            idx
+                                                                        }
+                                                                        initial={{
+                                                                            opacity: 0,
+                                                                            y: 10,
+                                                                        }}
+                                                                        animate={{
+                                                                            opacity: 1,
+                                                                            y: 0,
+                                                                        }}
+                                                                        transition={{
+                                                                            delay:
+                                                                                idx *
+                                                                                0.1,
+                                                                        }}
+                                                                        onClick={() =>
+                                                                            handleSuggestedMessage(
+                                                                                suggestion
+                                                                            )
+                                                                        }
+                                                                        className="w-full text-left bg-white/80 hover:bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-600 hover:text-gray-900 transition-all duration-200 hover:shadow-sm"
+                                                                    >
+                                                                        💸{" "}
+                                                                        {
+                                                                            suggestion
+                                                                        }
+                                                                    </motion.button>
+                                                                )
+                                                            )}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        {demoMessages.map((msg, idx) => (
+                                            <motion.div
+                                                key={idx}
+                                                initial={{
+                                                    opacity: 0,
+                                                    y: 10,
+                                                    x:
+                                                        msg.type === "user"
+                                                            ? 20
+                                                            : -20,
+                                                }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    y: 0,
+                                                    x: 0,
+                                                }}
+                                                transition={{
+                                                    delay: 0.1,
+                                                    type: "spring",
+                                                    stiffness: 300,
+                                                    damping: 30,
+                                                }}
+                                                className={`flex ${
+                                                    msg.type === "user"
+                                                        ? "justify-end"
+                                                        : "justify-start"
+                                                }`}
+                                            >
+                                                <div
+                                                    className={`max-w-[85%] px-4 py-3 ${
+                                                        msg.type === "user"
+                                                            ? "bg-green-500 text-white rounded-2xl rounded-br-md"
+                                                            : "bg-white text-gray-900 shadow-sm border border-gray-100 rounded-2xl rounded-bl-md"
+                                                    }`}
+                                                >
+                                                    <p
+                                                        className={`text-sm whitespace-pre-line leading-relaxed ${
                                                             msg.type === "user"
-                                                                ? "justify-end"
-                                                                : "justify-start"
+                                                                ? "text-right"
+                                                                : "text-left"
                                                         }`}
                                                     >
-                                                        <div
-                                                            className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                                                                msg.type ===
-                                                                "user"
-                                                                    ? "bg-green-500 text-white"
-                                                                    : "bg-white text-gray-900 shadow-sm border border-gray-100"
-                                                            }`}
-                                                        >
-                                                            <p className="text-sm whitespace-pre-line leading-relaxed">
-                                                                {msg.text}
-                                                            </p>
-                                                            <p
-                                                                className={`text-xs mt-2 ${
-                                                                    msg.type ===
-                                                                    "user"
-                                                                        ? "text-green-100"
-                                                                        : "text-gray-400"
-                                                                }`}
-                                                            >
-                                                                {msg.time}
-                                                            </p>
-                                                        </div>
-                                                    </motion.div>
-                                                ))}
-
-                                        {demoStep === 0 && (
-                                            <motion.div
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                className="flex justify-center items-center h-32"
-                                            >
-                                                <div className="text-center text-gray-400">
-                                                    <p className="text-sm">
-                                                        Send a message to see AI
-                                                        in action!
+                                                        {msg.text}
                                                     </p>
-                                                    <p className="text-xs mt-1">
-                                                        Try: &quot;Coffee
-                                                        50rs&quot;
+                                                    <p
+                                                        className={`text-xs mt-2 ${
+                                                            msg.type === "user"
+                                                                ? "text-green-100 text-right"
+                                                                : "text-gray-400 text-left"
+                                                        }`}
+                                                    >
+                                                        {msg.time}
                                                     </p>
                                                 </div>
                                             </motion.div>
-                                        )}
-
-                                        {demoStep === 1 && (
+                                        ))}{" "}
+                                        {isTyping && (
                                             <motion.div
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
+                                                initial={{
+                                                    opacity: 0,
+                                                    scale: 0.8,
+                                                    x: -20,
+                                                }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    scale: 1,
+                                                    x: 0,
+                                                }}
+                                                transition={{
+                                                    type: "spring",
+                                                    stiffness: 300,
+                                                    damping: 30,
+                                                }}
                                                 className="flex justify-start"
                                             >
-                                                <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100">
+                                                <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-gray-100">
                                                     <div className="flex space-x-1">
                                                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                                                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></div>
                                                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></div>
                                                     </div>
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        AI is thinking...
+                                                    </p>
                                                 </div>
                                             </motion.div>
                                         )}
@@ -304,7 +473,14 @@ export default function HomePage() {
                                     <div className="p-3 bg-gray-50 border-t border-gray-200 flex-shrink-0">
                                         <div className="flex items-center space-x-2 mb-3">
                                             {/* Attachment Icon */}
-                                            <button className="flex-shrink-0 w-7 h-7 bg-gray-300 rounded-full flex items-center justify-center">
+                                            <button
+                                                className="flex-shrink-0 w-7 h-7 bg-gray-300 hover:bg-gray-400 rounded-full flex items-center justify-center transition-colors"
+                                                onClick={() =>
+                                                    handleSuggestedMessage(
+                                                        "📷 Photo of restaurant bill"
+                                                    )
+                                                }
+                                            >
                                                 <Camera className="w-3.5 h-3.5 text-gray-600" />
                                             </button>
 
@@ -313,26 +489,57 @@ export default function HomePage() {
                                                 <div className="flex items-center">
                                                     <input
                                                         type="text"
-                                                        placeholder={
-                                                            demoStep === 0
-                                                                ? "Type 'Coffee 50rs'"
-                                                                : "Type a message"
+                                                        placeholder="Type your expense... e.g. '50rs coffee'"
+                                                        value={demoInput}
+                                                        onChange={(e) =>
+                                                            setDemoInput(
+                                                                e.target.value
+                                                            )
                                                         }
-                                                        value={
-                                                            demoStep === 1
-                                                                ? "Coffee 50rs"
-                                                                : ""
+                                                        onKeyPress={(e) =>
+                                                            e.key === "Enter" &&
+                                                            handleSendMessage()
                                                         }
-                                                        className="flex-1 min-w-0 px-2.5 py-2 bg-transparent text-sm focus:outline-none placeholder-gray-500"
-                                                        readOnly
+                                                        className="flex-1 min-w-0 px-2.5 py-2 bg-transparent text-sm focus:outline-none placeholder-gray-400"
+                                                        disabled={isTyping}
                                                     />
                                                     <div className="flex items-center space-x-1 pr-1.5">
-                                                        <button className="text-gray-400 hover:text-gray-600">
+                                                        <button
+                                                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                                                            onClick={() => {
+                                                                const emojis = [
+                                                                    "😊",
+                                                                    "💰",
+                                                                    "🛒",
+                                                                    "🍕",
+                                                                    "☕",
+                                                                ];
+                                                                const randomEmoji =
+                                                                    emojis[
+                                                                        Math.floor(
+                                                                            Math.random() *
+                                                                                emojis.length
+                                                                        )
+                                                                    ];
+                                                                setDemoInput(
+                                                                    (prev) =>
+                                                                        prev +
+                                                                        randomEmoji
+                                                                );
+                                                            }}
+                                                        >
                                                             <span className="text-sm">
                                                                 😊
                                                             </span>
                                                         </button>
-                                                        <button className="text-gray-400 hover:text-gray-600">
+                                                        <button
+                                                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                                                            onClick={() =>
+                                                                handleSuggestedMessage(
+                                                                    "🎤 Voice: Fifty rupees for coffee"
+                                                                )
+                                                            }
+                                                        >
                                                             <Mic className="w-3.5 h-3.5" />
                                                         </button>
                                                     </div>
@@ -343,13 +550,27 @@ export default function HomePage() {
                                             <Button
                                                 onClick={handleDemoInteraction}
                                                 size="sm"
-                                                className="flex-shrink-0 w-9 h-9 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+                                                disabled={isTyping}
+                                                className={`flex-shrink-0 w-9 h-9 p-0 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-105 ${
+                                                    demoInput.trim()
+                                                        ? "bg-green-500 hover:bg-green-600"
+                                                        : demoMessages.length >
+                                                          0
+                                                        ? "bg-blue-500 hover:bg-blue-600"
+                                                        : "bg-gray-400 hover:bg-gray-500"
+                                                }`}
                                             >
-                                                {demoStep < 2 ? (
+                                                {isTyping ? (
+                                                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                ) : demoInput.trim() ? (
                                                     <Send className="w-3.5 h-3.5" />
+                                                ) : demoMessages.length > 0 ? (
+                                                    <span className="text-xs">
+                                                        <RefreshCcw />
+                                                    </span>
                                                 ) : (
                                                     <span className="text-xs">
-                                                        🔄
+                                                        ✨
                                                     </span>
                                                 )}
                                             </Button>
@@ -362,36 +583,39 @@ export default function HomePage() {
                                             className="text-center"
                                         >
                                             <div className="inline-flex items-center space-x-2 text-xs text-gray-500 bg-white/90 px-3 py-1.5 rounded-full border border-gray-300 shadow-sm">
-                                                {demoStep === 0 ? (
+                                                {isTyping ? (
                                                     <>
-                                                        <span
-                                                            className={
-                                                                isAutoPlaying
-                                                                    ? "animate-pulse"
-                                                                    : ""
-                                                            }
-                                                        >
-                                                            ✨
+                                                        <span className="animate-pulse">
+                                                            🤖
                                                         </span>
                                                         <span className="font-medium">
-                                                            {isAutoPlaying
-                                                                ? "Auto-playing demo..."
-                                                                : "Click send to try demo!"}
+                                                            AI is processing...
                                                         </span>
                                                     </>
-                                                ) : demoStep === 1 ? (
+                                                ) : demoInput.trim() ? (
                                                     <>
-                                                        <span>⏳</span>
+                                                        <span>🚀</span>
                                                         <span className="font-medium">
-                                                            Processing...
+                                                            Press Enter or click
+                                                            send!
+                                                        </span>
+                                                    </>
+                                                ) : demoMessages.length > 0 ? (
+                                                    <>
+                                                        <span>🎉</span>
+                                                        <span className="font-medium">
+                                                            Try another expense
+                                                            or reset!
                                                         </span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <span>🎉</span>
+                                                        <span className="animate-pulse">
+                                                            ✨
+                                                        </span>
                                                         <span className="font-medium">
-                                                            Done! Click to
-                                                            restart
+                                                            Interactive demo -
+                                                            try typing!
                                                         </span>
                                                     </>
                                                 )}
