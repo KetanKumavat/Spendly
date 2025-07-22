@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import {
     ArrowLeft,
@@ -84,8 +83,6 @@ const budgets = [
 ];
 
 export default function DemoPage() {
-    const [selectedPeriod, setSelectedPeriod] = useState("This Month");
-
     const totalSpent = Object.values(categoryStats).reduce(
         (sum, amount) => sum + amount,
         0
@@ -95,7 +92,7 @@ export default function DemoPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200/50 sticky top-0 z-40 backdrop-blur-lg bg-white/80">
+            <div className="border-b border-gray-200/50 sticky top-0 z-40 backdrop-blur-lg bg-white/80">
                 <div className="max-w-7xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">

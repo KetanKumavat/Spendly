@@ -1,17 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
     ArrowLeft,
-    TrendingUp,
     PieChart,
     CreditCard,
-    MapPin,
     Clock,
     Download,
-    Filter,
     Camera,
     Loader2,
     AlertCircle,
@@ -44,7 +41,7 @@ interface Expense {
     imageUrl?: string;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [user, setUser] = useState<User | null>(null);
@@ -52,19 +49,29 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const token = searchParams.get("token");
+    const fetchExpenses = useCallback(async (phoneNumber: string) => {
+        try {
+            const token = localStorage.getItem("auth_token");
+            const response = await fetch(
+                `/api/expenses?userId=${phoneNumber}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
-        if (!token) {
-            setError("No authentication token provided");
-            setLoading(false);
-            return;
+            if (response.ok) {
+                const data = await response.json();
+                setExpenses(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch expenses:", err);
+            // Don't set error here as we'll show demo data instead
         }
+    }, []);
 
-        verifyToken(token);
-    }, [searchParams]);
-
-    const verifyToken = async (token: string) => {
+    const verifyToken = useCallback(async (token: string) => {
         try {
             const response = await fetch("/api/auth/verify-token", {
                 method: "POST",
@@ -94,29 +101,20 @@ export default function DashboardPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [fetchExpenses]);
 
-    const fetchExpenses = async (phoneNumber: string) => {
-        try {
-            const token = localStorage.getItem("auth_token");
-            const response = await fetch(
-                `/api/expenses?userId=${phoneNumber}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+    useEffect(() => {
+        const token = searchParams.get("token");
 
-            if (response.ok) {
-                const data = await response.json();
-                setExpenses(data);
-            }
-        } catch (err) {
-            console.error("Failed to fetch expenses:", err);
-            // Don't set error here as we'll show demo data instead
+        if (!token) {
+            setError("No authentication token provided");
+            setLoading(false);
+            return;
         }
-    };
+
+        verifyToken(token);
+        // Added verifyToken dependency to satisfy ESLint
+    }, [searchParams, verifyToken]);
 
     const handleLogout = () => {
         localStorage.removeItem("auth_token");
@@ -147,8 +145,8 @@ export default function DashboardPage() {
                             <p className="text-gray-600 mb-6">{error}</p>
                             <div className="space-y-3">
                                 <p className="text-sm text-gray-500">
-                                    To get a new login link, send "login" or
-                                    "dashboard" to your Spendly WhatsApp bot.
+                                    To get a new login link, send &quot;login&quot; or
+                                    &quot;dashboard&quot; to your Spendly WhatsApp bot.
                                 </p>
                                 <Link href="/">
                                     <Button className="w-full">
@@ -491,13 +489,13 @@ export default function DashboardPage() {
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <div className="text-left">
                                     <p className="text-sm font-medium text-blue-100">
-                                        💸 Send text: "50rs coffee at CCD"
+                                        💸 Send text: &quot;50rs coffee at CCD&quot;
                                     </p>
                                     <p className="text-sm font-medium text-blue-100">
                                         📷 Send bill photos for auto-extraction
                                     </p>
                                     <p className="text-sm font-medium text-blue-100">
-                                        📊 Type "summary" for quick analytics
+                                        📊 Type &quot;summary&quot; for quick analytics
                                     </p>
                                 </div>
                             </div>
@@ -506,5 +504,20 @@ export default function DashboardPage() {
                 </motion.div>
             </div>
         </div>
+    );
+}
+
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600">Loading dashboard...</p>
+                </div>
+            </div>
+        }>
+            <DashboardContent />
+        </Suspense>
     );
 }
