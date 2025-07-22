@@ -316,7 +316,7 @@ Keep tracking! Send another expense or type 'help' for more options. 📊${dashb
                 }
             );
 
-            console.log("Auth response:", response.data);
+            // console.log("Auth response:", response.data);
 
             if (!response.data.success) {
                 await sendWhatsApp(

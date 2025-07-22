@@ -309,15 +309,15 @@ class SmartCategorization {
             const quickResult = this.quickCategorize(text, vendor);
 
             if (quickResult.confidence >= 0.7) {
-                console.log(
-                    `📊 Quick categorized as: ${
-                        quickResult.category
-                    } (${quickResult.confidence.toFixed(2)})`
-                );
+                // console.log(
+                //     `📊 Quick categorized as: ${
+                //         quickResult.category
+                //     } (${quickResult.confidence.toFixed(2)})`
+                // );
                 return quickResult;
             }
 
-            console.log("Using AI for enhanced categorization...");
+            // console.log("Using AI for enhanced categorization...");
             const aiCategory = await categorizeExpense(text, vendor, amount);
 
             // Validate AI response
@@ -327,7 +327,7 @@ class SmartCategorization {
             ];
 
             if (validCategories.includes(aiCategory)) {
-                console.log(`🤖 AI categorized as: ${aiCategory}`);
+                // console.log(`🤖 AI categorized as: ${aiCategory}`);
                 return {
                     category: aiCategory,
                     confidence: 0.8,

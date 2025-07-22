@@ -53,7 +53,7 @@ router.get("/", apiLimiter, async (req, res) => {
             take: 100,
         });
 
-        console.log(`Found ${expenses.length} expenses for user ${userPhone}`);
+        // console.log(`Found ${expenses.length} expenses for user ${userPhone}`);
 
         const transformedExpenses = expenses.map((expense) => ({
             id: expense.id,

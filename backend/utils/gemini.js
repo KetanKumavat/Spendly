@@ -37,7 +37,7 @@ class GeminiService {
             );
 
             if (retryCount < this.maxRetries) {
-                console.log(`Retrying in ${this.retryDelay}ms...`);
+                // console.log(`Retrying in ${this.retryDelay}ms...`);
                 await new Promise((resolve) =>
                     setTimeout(resolve, this.retryDelay)
                 );

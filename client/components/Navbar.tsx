@@ -112,7 +112,7 @@ const Navbar = () => {
                             className="w-full bg-green-600 hover:bg-green-700"
                             onClick={() => {
                                 window.open(
-                                    "https://wa.me/14155238886?text=join%20hold-seed",
+                                    "https://wa.me/14155238886?text=join%20%hold-seed",
                                     "_blank"
                                 );
                                 setShowLoginModal(false);

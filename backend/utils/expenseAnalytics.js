@@ -15,7 +15,7 @@ class ExpenseAnalytics {
             }
 
             // Parse using Gemini
-            console.log(`🔍 Parsing query: "${query}"`);
+            // console.log(`Parsing query: "${query}"`);
             const queryParams = await parseExpenseQuery(query);
 
             if (!queryParams.isValid) {

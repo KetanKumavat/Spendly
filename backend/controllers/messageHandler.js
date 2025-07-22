@@ -188,7 +188,7 @@ You have *${rateLimitCheck.remaining} messages* remaining today (${rateLimitChec
 
         // text messages
         if (body && numMedia === 0) {
-            console.log(`Text: ${body}`);
+            // console.log(`Text: ${body}`);
 
             if (isFirstMessage) {
                 await prisma.user.update({
@@ -215,7 +215,7 @@ Great! I can see you've successfully joined our WhatsApp expense tracker!
                 await new Promise((resolve) => setTimeout(resolve, 2000));
             }
 
-            console.log(`Is "${body}" a command?`, SpendlyBot.isCommand(body));
+            // console.log(`Is "${body}" a command?`, SpendlyBot.isCommand(body));
 
             if (SpendlyBot.isCommand(body)) {
                 // console.log(`Command detected: ${body}`);
@@ -387,10 +387,10 @@ Great! I can see you've successfully joined our WhatsApp expense tracker and sen
                         let expenseData = {};
 
                         try {
-                            console.log("Extracting text using OCR...");
-                            ocrText = await extractTextFromImage(
-                                result.secure_url
-                            );
+                            // console.log("Extracting text using OCR...");
+                            // ocrText = await extractTextFromImage(
+                            //     result.secure_url
+                            // );
                             // console.log("OCR Text:", ocrText);
 
                             console.log(
