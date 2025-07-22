@@ -66,10 +66,10 @@ const Navbar = () => {
                             Login via WhatsApp
                         </h3>
 
-                                                    <p className="text-gray-600">
-                                To access your expense dashboard, send a
-                                message to our WhatsApp bot:
-                            </p>
+                        <p className="text-gray-600">
+                            To access your expense dashboard, send a message to
+                            our WhatsApp bot:
+                        </p>
 
                         <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                             <div className="text-left">
@@ -94,15 +94,15 @@ const Navbar = () => {
                                 First, start tracking expenses by sending
                                 messages like:
                                 <br />
-                                <em>&quot;50rs coffee at CCD&quot;</em> or sending bill
-                                photos
+                                <em>&quot;50rs coffee at CCD&quot;</em> or
+                                sending bill photos
                             </p>
                         </div>
 
                         <div className="flex flex-col space-y-2">
                             <p className="text-xs text-gray-500">
-                                You&apos;ll receive a secure magic link via WhatsApp
-                                that expires in 15 minutes
+                                You&apos;ll receive a secure magic link via
+                                WhatsApp that expires in 15 minutes
                             </p>
                             <Button
                                 onClick={() => setShowLoginModal(false)}

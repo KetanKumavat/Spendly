@@ -71,37 +71,40 @@ function DashboardContent() {
         }
     }, []);
 
-    const verifyToken = useCallback(async (token: string) => {
-        try {
-            const response = await fetch("/api/auth/verify-token", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ token }),
-            });
+    const verifyToken = useCallback(
+        async (token: string) => {
+            try {
+                const response = await fetch("/api/auth/verify-token", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ token }),
+                });
 
-            if (!response.ok) {
-                throw new Error("Invalid or expired token");
+                if (!response.ok) {
+                    throw new Error("Invalid or expired token");
+                }
+
+                const userData = await response.json();
+                setUser(userData);
+
+                // Store token in localStorage for session management
+                localStorage.setItem("auth_token", token);
+
+                // Fetch user expenses
+                await fetchExpenses(userData.phoneNumber);
+            } catch (err) {
+                console.error("Token verification failed:", err);
+                setError(
+                    "Invalid or expired login link. Please request a new one from WhatsApp."
+                );
+            } finally {
+                setLoading(false);
             }
-
-            const userData = await response.json();
-            setUser(userData);
-
-            // Store token in localStorage for session management
-            localStorage.setItem("auth_token", token);
-
-            // Fetch user expenses
-            await fetchExpenses(userData.phoneNumber);
-        } catch (err) {
-            console.error("Token verification failed:", err);
-            setError(
-                "Invalid or expired login link. Please request a new one from WhatsApp."
-            );
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchExpenses]);
+        },
+        [fetchExpenses]
+    );
 
     useEffect(() => {
         const token = searchParams.get("token");
@@ -145,8 +148,9 @@ function DashboardContent() {
                             <p className="text-gray-600 mb-6">{error}</p>
                             <div className="space-y-3">
                                 <p className="text-sm text-gray-500">
-                                    To get a new login link, send &quot;login&quot; or
-                                    &quot;dashboard&quot; to your Spendly WhatsApp bot.
+                                    To get a new login link, send
+                                    &quot;login&quot; or &quot;dashboard&quot;
+                                    to your Spendly WhatsApp bot.
                                 </p>
                                 <Link href="/">
                                     <Button className="w-full">
@@ -489,13 +493,15 @@ function DashboardContent() {
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <div className="text-left">
                                     <p className="text-sm font-medium text-blue-100">
-                                        💸 Send text: &quot;50rs coffee at CCD&quot;
+                                        💸 Send text: &quot;50rs coffee at
+                                        CCD&quot;
                                     </p>
                                     <p className="text-sm font-medium text-blue-100">
                                         📷 Send bill photos for auto-extraction
                                     </p>
                                     <p className="text-sm font-medium text-blue-100">
-                                        📊 Type &quot;summary&quot; for quick analytics
+                                        📊 Type &quot;summary&quot; for quick
+                                        analytics
                                     </p>
                                 </div>
                             </div>
@@ -509,14 +515,16 @@ function DashboardContent() {
 
 export default function DashboardPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                    <p className="text-gray-600">Loading dashboard...</p>
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                        <p className="text-gray-600">Loading dashboard...</p>
+                    </div>
                 </div>
-            </div>
-        }>
+            }
+        >
             <DashboardContent />
         </Suspense>
     );
