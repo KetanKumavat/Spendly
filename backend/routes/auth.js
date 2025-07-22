@@ -2,12 +2,13 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
+const sendWhatsApp = require("../utils/twilioWhatsapp");
 const prisma = new PrismaClient();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 router.post("/generate-magic-link", async (req, res) => {
-    const { phone } = req.body;
+    const { phone, sendViaWhatsApp = false } = req.body;
     if (!phone) return res.status(400).json({ error: "Phone number required" });
 
     let user = await prisma.user.findUnique({ where: { phoneNumber: phone } });
@@ -26,6 +27,35 @@ router.post("/generate-magic-link", async (req, res) => {
     const magicLink = `${
         process.env.FRONTEND_URL || "http://localhost:3001"
     }/dashboard?token=${token}`;
+
+    // Send via WhatsApp if requested
+    if (sendViaWhatsApp) {
+        try {
+            const whatsappMessage = `🔗 *Your Spendly Dashboard Link*
+
+${magicLink}
+
+✅ Valid for 15 minutes
+🔒 Secure access to your expense analytics
+📊 View your spending insights and budgets
+
+*Tip:* Bookmark this page after logging in!`;
+
+            await sendWhatsApp(phone, whatsappMessage);
+            return res.json({
+                success: true,
+                message: "Magic link sent via WhatsApp",
+                link: magicLink,
+            });
+        } catch (error) {
+            console.error("Failed to send WhatsApp message:", error);
+            return res.status(500).json({
+                error: "Failed to send WhatsApp message",
+                link: magicLink,
+            });
+        }
+    }
+
     return res.json({ link: magicLink });
 });
 
@@ -66,6 +96,61 @@ router.post("/verify-token", async (req, res) => {
         return res.json(user);
     } catch (err) {
         return res.status(401).json({ error: "Invalid or expired token" });
+    }
+});
+
+// WhatsApp authentication endpoint
+router.post("/whatsapp-login", async (req, res) => {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ error: "Phone number required" });
+
+    try {
+        // Clean phone number (remove whatsapp: prefix if present)
+        const cleanPhone = phone.replace("whatsapp:", "");
+
+        let user = await prisma.user.findUnique({
+            where: { phoneNumber: cleanPhone },
+        });
+
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    id: cleanPhone,
+                    phoneNumber: cleanPhone,
+                    name: `User ${cleanPhone.slice(-4)}`,
+                },
+            });
+        }
+
+        const token = jwt.sign({ phone: cleanPhone }, JWT_SECRET, {
+            expiresIn: "15m",
+        });
+
+        const magicLink = `${
+            process.env.FRONTEND_URL || "http://localhost:3001"
+        }/dashboard?token=${token}`;
+
+        const whatsappMessage = `🔗 *Your Spendly Dashboard Link*
+
+${magicLink}
+
+✅ Valid for 15 minutes
+🔒 Secure access to your expense analytics
+📊 View your spending insights and budgets
+
+*Tip:* Bookmark this page after logging in!`;
+
+        await sendWhatsApp(cleanPhone, whatsappMessage);
+
+        return res.json({
+            success: true,
+            message: "Dashboard link sent to your WhatsApp",
+        });
+    } catch (error) {
+        console.error("WhatsApp login error:", error);
+        return res.status(500).json({
+            error: "Failed to send login link",
+        });
     }
 });
 

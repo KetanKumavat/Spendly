@@ -3,33 +3,45 @@ const router = express.Router();
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-// Get expenses for a user
 router.get("/", async (req, res) => {
     try {
-        const { phone } = req.query;
+        const { phone, userId } = req.query;
+        const userPhone = phone || userId;
 
-        if (!phone) {
-            return res.status(400).json({ error: "Phone number required" });
+        if (!userPhone) {
+            return res
+                .status(400)
+                .json({ error: "Phone number or user ID required" });
         }
 
         const expenses = await prisma.expense.findMany({
             where: {
-                userId: phone,
+                userId: userPhone,
             },
             orderBy: {
                 createdAt: "desc",
             },
-            take: 100, // Limit to latest 100 expenses
+            take: 100,
         });
 
-        return res.json(expenses);
+        const transformedExpenses = expenses.map((expense) => ({
+            id: expense.id,
+            amount: expense.amount,
+            category: expense.category,
+            description: expense.description,
+            source: expense.source,
+            createdAt: expense.createdAt.toISOString(),
+            rawText: expense.rawText,
+            imageUrl: expense.imageUrl,
+        }));
+
+        return res.json(transformedExpenses);
     } catch (error) {
         console.error("Get expenses error:", error);
         return res.status(500).json({ error: "Failed to fetch expenses" });
     }
 });
 
-// Get monthly stats for a user
 router.get("/stats", async (req, res) => {
     try {
         const { phone } = req.query;
@@ -50,7 +62,6 @@ router.get("/stats", async (req, res) => {
             999
         );
 
-        // Get monthly expenses
         const monthlyExpenses = await prisma.expense.findMany({
             where: {
                 userId: phone,
@@ -62,21 +73,18 @@ router.get("/stats", async (req, res) => {
             orderBy: { createdAt: "desc" },
         });
 
-        // Calculate stats
         const totalAmount = monthlyExpenses.reduce(
             (sum, expense) => sum + expense.amount,
             0
         );
         const totalExpenses = monthlyExpenses.length;
 
-        // Category breakdown
         const categories = {};
         monthlyExpenses.forEach((expense) => {
             categories[expense.category] =
                 (categories[expense.category] || 0) + expense.amount;
         });
 
-        // Daily spending for the month
         const dailySpending = {};
         monthlyExpenses.forEach((expense) => {
             const date = expense.createdAt.toISOString().split("T")[0];

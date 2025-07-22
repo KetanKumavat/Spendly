@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,54 +8,54 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(uuid())
-  name            String 
-  phoneNumber     String    @unique
-  createdAt       DateTime  @default(now())
-  expenses        Expense[]
-  sessions        Session[]
-  budgets         Budget[]
+  id          String    @id @default(uuid())
+  phoneNumber String    @unique
+  createdAt   DateTime  @default(now())
+  name        String
+  budgets     Budget[]
+  expenses    Expense[]
+  sessions    Session[]
 }
 
 model Session {
-  id              String     @id @default(uuid())
-  user            User       @relation(fields: [userId], references: [id])
-  userId          String
-  isActive        Boolean    @default(true)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  lastMessage     String?
-  currentState    String?    // e.g., 'awaiting_amount', 'awaiting_category'
+  id           String   @id @default(uuid())
+  userId       String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastMessage  String?
+  currentState String?
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model Expense {
-  id              String    @id @default(uuid())
-  user            User      @relation(fields: [userId], references: [id])
-  userId          String
-  date            DateTime  @default(now())
-  amount          Float
-  category        String
-  description     String?
-  source          String    // "text", "image", "ocr", "manual"
-  imageUrl        String?   // Cloudinary URL
-  createdAt       DateTime  @default(now())
+  id             String   @id @default(uuid())
+  userId         String
+  amount         Float
+  category       String
+  date           DateTime @default(now())
+  imageUrl       String?
+  createdAt      DateTime @default(now())
+  description    String?
   rawText        String?
+  source         String
   structuredData Json?
+  user           User     @relation(fields: [userId], references: [id])
 }
 
 model Budget {
-  id              String    @id @default(uuid())
-  user            User      @relation(fields: [userId], references: [id])
-  userId          String
-  category        String    // "Food", "Travel", "Shopping", etc.
-  amount          Float     // Budget limit
-  period          String    // "monthly", "weekly", "daily"
-  startDate       DateTime
-  endDate         DateTime
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  alertThreshold  Float     @default(0.8) // Alert at 80%
-  
+  id             String   @id @default(uuid())
+  userId         String
+  category       String
+  amount         Float
+  period         String
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  alertThreshold Float    @default(0.8)
+  user           User     @relation(fields: [userId], references: [id])
+
   @@unique([userId, category, period, startDate])
 }

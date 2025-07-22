@@ -9,6 +9,7 @@ Hi there! I'm your personal expense tracking assistant. I'll help you track ever
 📝 *Text tracking:* Send me messages like "50rs coffee at CCD" or "paid 500 to grocery store"
 📷 *Bill scanning:* Send me photos of bills/receipts and I'll extract all details automatically
 📊 *Smart categorization:* I'll automatically categorize your expenses
+🌐 *Web dashboard:* Type "dashboard" for beautiful analytics and charts
 
 *Try it now!* Send me your first expense or a bill photo.
 
@@ -19,6 +20,7 @@ Type 'help' anytime for more options! 💪`;
 Ready to track more expenses? Send me:
 • A text like "100rs lunch at office canteen"
 • A photo of your bill/receipt
+• Type 'dashboard' for your web analytics
 • Type 'help' for all commands`;
         }
     }
@@ -45,6 +47,10 @@ Ready to track more expenses? Send me:
 • \`budgets\` - List all your budgets
 • \`budget status\` - Check budget usage
 
+*🌐 Web Dashboard:*
+• \`login\` or \`dashboard\` - Get secure link to web dashboard
+• View detailed analytics, charts, and export data
+
 *🔧 Other Commands:*
 • \`help\` - Show this menu
 
@@ -53,6 +59,7 @@ Ready to track more expenses? Send me:
 💡 Set budgets and get alerts when you're close to limits
 💡 Ask me natural questions about your spending!
 💡 Send clear photos for accurate bill scanning
+💡 Use the web dashboard for detailed analytics and data export
 
 What would you like to track today? 📊`;
     }
@@ -80,6 +87,12 @@ Need help? Type 'help' 💪`,
         const vendor = expenseData.vendor || "item";
         const date = expenseData.date || "today";
 
+        // Randomly include dashboard reminder (20% chance)
+        const includeDashboardReminder = Math.random() < 0.2;
+        const dashboardReminder = includeDashboardReminder
+            ? "\n\n💡 *Tip:* Type 'dashboard' to see beautiful charts and analytics on the web!"
+            : "";
+
         if (isImage) {
             return `✅ *Bill processed successfully!*
 
@@ -89,13 +102,13 @@ Need help? Type 'help' 💪`,
 
 Your expense has been saved automatically! 🎉
 
-Send another expense or type 'summary' to see your spending overview.`;
+Send another expense or type 'summary' to see your spending overview.${dashboardReminder}`;
         } else {
             return `✅ *Expense saved!*
 
 ₹${amount} spent at ${vendor} on ${date}
 
-Keep tracking! Send another expense or type 'help' for more options. 📊`;
+Keep tracking! Send another expense or type 'help' for more options. 📊${dashboardReminder}`;
         }
     }
 
@@ -291,22 +304,22 @@ Keep tracking! Send another expense or type 'help' for more options. 📊`;
             const API_URL = process.env.API_URL || "http://localhost:3000";
 
             const response = await axios.post(
-                `${API_URL}/auth/generate-magic-link`,
+                `${API_URL}/auth/whatsapp-login`,
                 {
                     phone: phoneNumber,
                 }
             );
 
-            if (response.data && response.data.link) {
-                return `🔗 *Your Dashboard Link*
+            if (response.data && response.data.success) {
+                return `✅ *Dashboard link sent to your WhatsApp!*
 
-${response.data.link}
+Check your messages for the secure login link.
 
-✅ This link is valid for 15 minutes
-🔒 Secure access to your expense data
-📊 View analytics, budgets, and export data
+🔒 The link is valid for 15 minutes
+� Access your complete expense analytics
+💰 View budgets and spending insights
 
-*Tip:* Bookmark this page after logging in!`;
+*New here?* The dashboard shows all your tracked expenses in beautiful charts and tables!`;
             } else {
                 return "❌ Failed to generate dashboard link. Please try again.";
             }

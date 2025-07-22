@@ -3,7 +3,6 @@ const cloudinary = require("../utils/cloudinary");
 const { PrismaClient } = require("@prisma/client");
 const { extractTextFromImage } = require("../utils/ocr");
 const { GeminiService } = require("../utils/gemini");
-
 const sendWhatsApp = require("../utils/twilioWhatsapp");
 const SpendlyBot = require("../utils/spendlyBot");
 const SmartCategorization = require("../utils/smartCategorization");
