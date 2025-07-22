@@ -2,7 +2,7 @@
 
 Spendly helps users track expenses directly through WhatsApp using natural language or receipt images. With the power of **Google Gemini**, **OCR**, and **Cloud Vision API**, Spendly intelligently extracts and categorizes spending data. A sleek **web dashboard** provides insights, analytics, and budget tracking.
 
-🔗 [Live Dashboard](https://spendly-frontend.vercel.app) • 📱 [Try Bot](https://wa.me/14155238886?text=join%20%hold-seed)
+🔗 [Live](https://spendlyapp.vercel.app) 
 
 ---
 
