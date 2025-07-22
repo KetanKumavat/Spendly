@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Info, X } from "lucide-react";
+import { Info } from "lucide-react";
 
 interface TooltipProps {
     children: React.ReactNode;
@@ -84,7 +84,7 @@ export function WhatsAppTooltip({ children }: WhatsAppTooltipProps) {
                             </li>
                             <li>3. Wait for Twilio confirmation</li>
                             <li>4. Send any message to get started!</li>
-                            <li>5. Start tracking: "50rs coffee"</li>
+                            <li>5. Start tracking: &quot;50rs coffee&quot;</li>
                         </ol>
                     </div>
                     <div className="text-xs text-gray-300 border-t border-gray-600 pt-2">

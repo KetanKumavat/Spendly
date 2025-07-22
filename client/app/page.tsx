@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
     MessageCircle,
@@ -8,7 +8,6 @@ import {
     ArrowRight,
     Sparkles,
     ChevronDown,
-    Play,
     Send,
     Mic,
     RefreshCcw,
@@ -38,8 +37,6 @@ const staggerChildren = {
 };
 
 export default function HomePage() {
-    const [demoStep, setDemoStep] = useState(0);
-    const [isAutoPlaying, setIsAutoPlaying] = useState(false);
     const [demoInput, setDemoInput] = useState("");
     const [demoMessages, setDemoMessages] = useState<
         Array<{ type: "user" | "bot"; text: string; time: string }>
@@ -56,21 +53,24 @@ export default function HomePage() {
         "75rs tea and snacks",
     ];
 
-    const botResponses: Record<string, string> = {
-        "50rs coffee at starbucks":
-            "✅ Expense saved!\n💰 ₹50 - Food & Dining\n🏪 Vendor: Starbucks\n📅 Today\n\nYour food budget: ₹1,450/₹5,000 (29%)",
-        "1200 groceries from bigbasket":
-            "✅ Expense saved!\n💰 ₹1,200 - Groceries\n🏪 Vendor: BigBasket\n📅 Today\n\nYour grocery budget: ₹3,200/₹8,000 (40%)",
-        "300rs uber ride":
-            "✅ Expense saved!\n💰 ₹300 - Transportation\n🏪 Vendor: Uber\n📅 Today\n\nYour transport budget: ₹800/₹3,000 (27%)",
-        "150 lunch at kfc":
-            "✅ Expense saved!\n💰 ₹150 - Food & Dining\n🏪 Vendor: KFC\n📅 Today\n\nYour food budget: ₹1,600/₹5,000 (32%)",
-        "75rs tea and snacks":
-            "✅ Expense saved!\n💰 ₹75 - Food & Dining\n🏪 Vendor: Local Store\n📅 Today\n\nYour food budget: ₹1,675/₹5,000 (34%)",
-    };
+    const botResponses = useMemo(
+        (): Record<string, string> => ({
+            "50rs coffee at starbucks":
+                "✅ Expense saved!\n💰 ₹50 - Food & Dining\n🏪 Vendor: Starbucks\n📅 Today\n\nYour food budget: ₹1,450/₹5,000 (29%)",
+            "1200 groceries from bigbasket":
+                "✅ Expense saved!\n💰 ₹1,200 - Groceries\n🏪 Vendor: BigBasket\n📅 Today\n\nYour grocery budget: ₹3,200/₹8,000 (40%)",
+            "300rs uber ride":
+                "✅ Expense saved!\n💰 ₹300 - Transportation\n🏪 Vendor: Uber\n📅 Today\n\nYour transport budget: ₹800/₹3,000 (27%)",
+            "150 lunch at kfc":
+                "✅ Expense saved!\n💰 ₹150 - Food & Dining\n🏪 Vendor: KFC\n📅 Today\n\nYour food budget: ₹1,600/₹5,000 (32%)",
+            "75rs tea and snacks":
+                "✅ Expense saved!\n💰 ₹75 - Food & Dining\n🏪 Vendor: Local Store\n📅 Today\n\nYour food budget: ₹1,675/₹5,000 (34%)",
+        }),
+        []
+    );
 
     const whatsappUrl = `https://wa.me/14155238886?text=${encodeURIComponent(
-        "join hold-seed"
+        "join%20hold-seed"
     )}`;
 
     const getCurrentTime = () => {
@@ -91,13 +91,11 @@ export default function HomePage() {
             time: getCurrentTime(),
         };
 
-        // Add user message
         setDemoMessages((prev) => [...prev, userMessage]);
         const inputToProcess = demoInput;
         setDemoInput("");
         setIsTyping(true);
 
-        // Simulate AI processing delay
         setTimeout(() => {
             const normalizedInput = inputToProcess.toLowerCase().trim();
             const response =
@@ -125,49 +123,11 @@ export default function HomePage() {
         setIsTyping(false);
     };
 
-    // Auto-play demo functionality (simplified)
     useEffect(() => {
-        if (isAutoPlaying && demoMessages.length === 0) {
-            const randomMessage =
-                suggestedMessages[
-                    Math.floor(Math.random() * suggestedMessages.length)
-                ];
-            setDemoInput(randomMessage);
-            setTimeout(() => {
-                if (randomMessage.trim()) {
-                    setDemoMessages((prev) => [
-                        ...prev,
-                        {
-                            type: "user",
-                            text: randomMessage,
-                            time: getCurrentTime(),
-                        },
-                    ]);
-                    setDemoInput("");
-                    setIsTyping(true);
-
-                    setTimeout(() => {
-                        const normalizedInput = randomMessage
-                            .toLowerCase()
-                            .trim();
-                        const response =
-                            botResponses[normalizedInput] ||
-                            "✅ Expense saved!\n💰 Amount processed\n📅 Today\n\nI'll learn to categorize this better next time! 🤖";
-
-                        setDemoMessages((prev) => [
-                            ...prev,
-                            {
-                                type: "bot",
-                                text: response,
-                                time: getCurrentTime(),
-                            },
-                        ]);
-                        setIsTyping(false);
-                    }, 1500);
-                }
-            }, 1000);
-        }
-    }, [isAutoPlaying, demoMessages.length]);
+        return () => {
+            setIsTyping(false);
+        };
+    }, []);
 
     const handleDemoInteraction = () => {
         if (demoInput.trim()) {

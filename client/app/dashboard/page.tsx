@@ -492,10 +492,11 @@ function DashboardContent() {
                                                 💡 Try sending:
                                             </p>
                                             <p className="text-sm text-gray-700">
-                                                • "50rs coffee at Starbucks"
+                                                • &quot;50rs coffee at
+                                                Starbucks&quot;
                                             </p>
                                             <p className="text-sm text-gray-700">
-                                                • "1200 groceries"
+                                                • &quot;1200 groceries&quot;
                                             </p>
                                             <p className="text-sm text-gray-700">
                                                 • Upload a photo of your bill
@@ -610,10 +611,10 @@ function DashboardContent() {
                                         Keep the Momentum Going!
                                     </h3>
                                     <p className="text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
-                                        Your expense tracking journey doesn't
-                                        stop here. Send expenses directly to
-                                        WhatsApp and watch your financial
-                                        insights grow automatically.
+                                        Your expense tracking journey
+                                        doesn&apos;t stop here. Send expenses
+                                        directly to WhatsApp and watch your
+                                        financial insights grow automatically.
                                     </p>
                                 </div>
 
@@ -638,7 +639,7 @@ function DashboardContent() {
                                             Simply type and send:
                                         </p>
                                         <code className="text-xs bg-black/20 text-green-200 px-2 py-1 rounded font-mono">
-                                            "50rs coffee at CCD"
+                                            &quot;50rs coffee at CCD&quot;
                                         </code>
                                     </motion.div>
 
@@ -685,7 +686,8 @@ function DashboardContent() {
                                             Type commands like:
                                         </p>
                                         <code className="text-xs bg-black/20 text-purple-200 px-2 py-1 rounded font-mono">
-                                            "summary" or "help"
+                                            &quot;summary&quot; or
+                                            &quot;help&quot;
                                         </code>
                                     </motion.div>
                                 </div>
