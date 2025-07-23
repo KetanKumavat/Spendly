@@ -70,7 +70,7 @@ export default function HomePage() {
     );
 
     const whatsappUrl = `https://wa.me/14155238886?text=${encodeURIComponent(
-        "join%20%hold-seed"
+        "join hold-seed"
     )}`;
 
     const getCurrentTime = () => {
