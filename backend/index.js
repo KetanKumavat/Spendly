@@ -9,11 +9,9 @@ const app = express();
 
 app.use(
     cors({
-        origin: [
-            "http://localhost:3001",
-            "https://spendly-frontend.vercel.app",
-            process.env.FRONTEND_URL,
-        ].filter(Boolean),
+        origin: ["http://localhost:3001", process.env.FRONTEND_URL].filter(
+            Boolean
+        ),
         credentials: true,
     })
 );
@@ -49,7 +47,7 @@ if (
     const serverUrl = process.env.RENDER_EXTERNAL_URL || process.env.SERVER_URL;
 
     if (serverUrl) {
-        cron.schedule("*/40 * * * *", async () => {
+        cron.schedule("*/14 * * * *", async () => {
             try {
                 const fetch = (await import("node-fetch")).default;
                 const response = await fetch(`${serverUrl}/keep-alive`);
