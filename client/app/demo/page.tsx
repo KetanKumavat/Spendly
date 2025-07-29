@@ -443,7 +443,7 @@ export default function DemoPage() {
                             variant="secondary"
                             onClick={() =>
                                 window.open(
-                                    "https://wa.me/14155238886?text=join%20%hold-seed",
+                                    "https://wa.me/14155238886?text=join%20hold-seed",
                                     "_blank"
                                 )
                             }

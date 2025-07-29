@@ -24,7 +24,6 @@ const Footer = () => {
     )}`;
     return (
         <div>
-            {/* Enhanced CTA Section */}
             <motion.section
                 className="px-6 py-24 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white relative overflow-hidden"
                 initial="initial"
@@ -101,9 +100,6 @@ const Footer = () => {
                             >
                                 How it works
                             </a>
-                            <span className="text-sm">
-                                © 2024 Spendly. All rights reserved.
-                            </span>
                         </div>
                     </div>
                 </div>

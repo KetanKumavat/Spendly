@@ -288,7 +288,11 @@ Great! I can see you've successfully joined our WhatsApp expense tracker!
                         category: smartCategory,
                         description: `Vendor: ${
                             expenseData.vendor || "N/A"
-                        } | Date: ${expenseData.date || "N/A"}`,
+                        } | Date: ${expenseData.date || new Date().toLocaleDateString('en-IN', { 
+                            day: '2-digit', 
+                            month: 'short', 
+                            year: 'numeric' 
+                        })}`,
                         rawText: body,
                         structuredData: expenseData,
                     },
@@ -447,7 +451,11 @@ I'll keep improving! 🚀`;
                                 category: smartCategory,
                                 description: `Vendor: ${
                                     expenseData.vendor || "N/A"
-                                } | Date: ${expenseData.date || "N/A"}`,
+                                } | Date: ${expenseData.date || new Date().toLocaleDateString('en-IN', { 
+                                    day: '2-digit', 
+                                    month: 'short', 
+                                    year: 'numeric' 
+                                })}`,
                                 rawText: ocrText,
                                 structuredData: expenseData,
                             },

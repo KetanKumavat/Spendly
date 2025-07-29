@@ -2,9 +2,17 @@
 
 Spendly helps users track expenses directly through WhatsApp using natural language or receipt images. With the power of **Google Gemini**, **OCR**, and **Cloud Vision API**, Spendly intelligently extracts and categorizes spending data. A sleek **web dashboard** provides insights, analytics, and budget tracking.
 
-🔗 [Live](https://spendlyapp.vercel.app) 
+🔗 [Live](https://spendly.ketankumavat.me)
 
 ---
+
+## 📸 Demo Screenshots
+
+<div align="center">
+  <img src="client/public/1.jpg" alt="Dashboard Preview Link" width="300" />
+  <img src="client/public/2.jpg" alt="Budget Tracking" width="300" />
+  <img src="client/public/3.jpg" alt="Receipt Processing" width="300" />
+</div>
 
 ## 🚀 Features
 
@@ -35,7 +43,7 @@ Spendly helps users track expenses directly through WhatsApp using natural langu
 
 Once you're in the sandbox:
 
-1. **Join Bot:** [Click to Join](https://wa.me/14155238886?text=join%20%hold-seed)
+1. **Join Bot:** [Click to Join](https://wa.me/14155238886?text=join%20hold-seed)
 2. **Send Expense Examples:**
     - `200 groceries from Dmart`
     - `Bought chai for 20`
@@ -54,7 +62,7 @@ Once you're in the sandbox:
 
 ### 🔑 Environment Variables
 
-Create a `.env` in both `backend/`
+Create a `.env` in `backend/`
 
 #### `backend/.env`
 

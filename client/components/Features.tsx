@@ -90,7 +90,7 @@ export const Features = () => {
                             icon: (
                                 <Shield className="h-7 w-7 text-indigo-600" />
                             ),
-                            title: "Bank-Grade Security",
+                            title: "Secure & Private",
                             description:
                                 "End-to-end encryption, secure magic links, and privacy-first design.",
                             gradient: "from-indigo-50 to-purple-50",

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, MessageCircle } from "lucide-react";
+import { Sparkles, MessageCircle, LayoutDashboard } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
@@ -42,7 +42,7 @@ const Navbar = () => {
                             className="border-gray-300"
                             onClick={() => setShowLoginModal(true)}
                         >
-                            <MessageCircle className="w-4 h-4 mr-2" />
+                            <LayoutDashboard className="w-4 h-4 mr-2" />
                             Access Dashboard
                         </Button>
                     </div>
@@ -112,7 +112,7 @@ const Navbar = () => {
                             className="w-full bg-green-600 hover:bg-green-700"
                             onClick={() => {
                                 window.open(
-                                    "https://wa.me/14155238886?text=join%20%hold-seed",
+                                    "https://wa.me/14155238886?text=join%20hold-seed",
                                     "_blank"
                                 );
                                 setShowLoginModal(false);

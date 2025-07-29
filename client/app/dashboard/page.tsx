@@ -241,25 +241,43 @@ function DashboardContent() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
             {/* Header */}
             <div className="border-b border-gray-200/50 sticky top-0 z-40 backdrop-blur-lg bg-white/80">
-                <div className="max-w-7xl mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <Link href="/">
-                                <Button variant="ghost" size="sm">
-                                    <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to Home
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center justify-between sm:justify-start">
+                            <div className="flex items-center space-x-2 sm:space-x-4">
+                                <Link href="/">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="p-2 sm:px-3"
+                                    >
+                                        <ArrowLeft className="w-4 h-4 sm:mr-2" />
+                                        <span className="hidden sm:inline">
+                                            Back to Home
+                                        </span>
+                                    </Button>
+                                </Link>
+                                <div>
+                                    <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
+                                        Expense Dashboard
+                                    </h1>
+                                    <p className="text-xs sm:text-sm text-gray-500">
+                                        Welcome back, {user?.name || "User"}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="sm:hidden">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleLogout}
+                                    className="p-2"
+                                >
+                                    <LogOut className="w-4 h-4" />
                                 </Button>
-                            </Link>
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">
-                                    Expense Dashboard
-                                </h1>
-                                <p className="text-sm text-gray-500">
-                                    Welcome back, {user?.name || "User"}
-                                </p>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-4">
+                        <div className="hidden sm:flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
                                 <div className="p-2 bg-green-100 rounded-full">
                                     <User className="w-4 h-4 text-green-600" />
@@ -281,7 +299,7 @@ function DashboardContent() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
                 {expenses.length === 0 && (
                     <Alert className="mb-8 bg-blue-50 border-blue-200">
                         <AlertCircle className="h-4 w-4 text-blue-600" />
@@ -441,9 +459,33 @@ function DashboardContent() {
                                                         </div>
                                                         <div>
                                                             <p className="font-medium text-gray-900">
-                                                                {expense.description ||
-                                                                    expense.rawText ||
-                                                                    "Expense"}
+                                                                {(() => {
+                                                                    const vendorMatch =
+                                                                        expense.description?.match(
+                                                                            /Vendor: ([^|]+)/
+                                                                        );
+                                                                    const vendor =
+                                                                        vendorMatch
+                                                                            ? vendorMatch[1].trim()
+                                                                            : null;
+
+                                                                    if (
+                                                                        vendor &&
+                                                                        vendor !==
+                                                                            "N/A"
+                                                                    ) {
+                                                                        return `${
+                                                                            expense.rawText ||
+                                                                            expense.category
+                                                                        }`;
+                                                                    }
+
+                                                                    return (
+                                                                        expense.rawText ||
+                                                                        expense.category ||
+                                                                        "Expense"
+                                                                    );
+                                                                })()}
                                                             </p>
                                                             <div className="flex items-center space-x-2">
                                                                 <Badge

@@ -3,6 +3,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "../components/ui/dialog";
+import {
     MessageCircle,
     Camera,
     ArrowRight,
@@ -15,7 +21,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WhatsAppTooltip } from "@/components/ui/tooltip";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import { Features } from "@/components/Features";
@@ -38,6 +43,7 @@ const staggerChildren = {
 
 export default function HomePage() {
     const [demoInput, setDemoInput] = useState("");
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const [demoMessages, setDemoMessages] = useState<
         Array<{ type: "user" | "bot"; text: string; time: string }>
     >([]);
@@ -226,16 +232,15 @@ export default function HomePage() {
                                 </Button>
                             </WhatsAppTooltip>
 
-                            <Link href="/demo">
-                                <Button
-                                    variant="outline"
-                                    size="lg"
-                                    className="px-8 py-4 border-gray-300 hover:bg-gray-50"
-                                >
-                                    <LayoutDashboard className="mr-2 h-5 w-5" />
-                                    Demo Dashboard
-                                </Button>
-                            </Link>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-gray-300"
+                                onClick={() => setShowLoginModal(true)}
+                            >
+                                <LayoutDashboard className="w-4 h-4 mr-2" />
+                                Access Dashboard
+                            </Button>
                         </motion.div>
                     </motion.div>
 
@@ -600,6 +605,93 @@ export default function HomePage() {
             <Features />
             <HowItWorks />
             <Footer />
+            <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-center">
+                            Access Your Dashboard
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="text-center space-y-4 p-4">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                            <MessageCircle className="w-8 h-8 text-green-600" />
+                        </div>
+
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            Login via WhatsApp
+                        </h3>
+
+                        <p className="text-gray-600">
+                            To access your expense dashboard, send a message to
+                            our WhatsApp bot:
+                        </p>
+
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                            <div className="text-left">
+                                <p className="text-sm font-medium text-gray-700">
+                                    Send any of these commands:
+                                </p>
+                                <div className="mt-2 space-y-1">
+                                    <code className="block bg-white px-3 py-2 rounded border text-blue-600 font-mono text-sm">
+                                        login
+                                    </code>
+                                    <code className="block bg-white px-3 py-2 rounded border text-blue-600 font-mono text-sm">
+                                        dashboard
+                                    </code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-50 rounded-lg p-4 text-left">
+                            <p className="text-sm text-blue-800">
+                                <strong>📱 First time user?</strong>
+                                <br />
+                                1. Send{" "}
+                                <code className="bg-blue-200 px-1 rounded">
+                                    join hold-seed
+                                </code>{" "}
+                                to join our WhatsApp bot
+                                <br />
+                                2. Then send{" "}
+                                <code className="bg-blue-200 px-1 rounded">
+                                    login
+                                </code>{" "}
+                                to get dashboard access
+                                <br />
+                                3. Start tracking:{" "}
+                                <em>&quot;50rs coffee at CCD&quot;</em>
+                            </p>
+                        </div>
+
+                        <Button
+                            className="w-full bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                                window.open(
+                                    "https://wa.me/14155238886?text=join%20hold-seed",
+                                    "_blank"
+                                );
+                                setShowLoginModal(false);
+                            }}
+                        >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            Open WhatsApp
+                        </Button>
+
+                        <div className="flex flex-col space-y-2">
+                            <p className="text-xs text-gray-500">
+                                You&apos;ll receive a secure magic link via
+                                WhatsApp that expires in 15 minutes
+                            </p>
+                            <Button
+                                onClick={() => setShowLoginModal(false)}
+                                className="w-full"
+                            >
+                                Got it!
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
